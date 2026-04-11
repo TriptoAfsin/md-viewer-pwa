@@ -48,7 +48,7 @@ function App() {
   const handleOpenFile = useCallback(async () => {
     if ("showOpenFilePicker" in window) {
       try {
-        const [handle] = await window.showOpenFilePicker({
+        const [handle] = await window.showOpenFilePicker!({
           types: [
             {
               description: "Markdown files",
