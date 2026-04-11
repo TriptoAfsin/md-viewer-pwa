@@ -12,7 +12,7 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
       includeAssets: ['favicon.svg'],
       manifest: {
         name: 'MD View — Markdown Viewer',

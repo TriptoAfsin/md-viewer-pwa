@@ -5,6 +5,7 @@ import { DropZone } from "@/components/DropZone"
 import { MarkdownView } from "@/components/MarkdownView"
 import { MarkdownEditor } from "@/components/MarkdownEditor"
 import { Toaster } from "@/components/ui/sonner"
+import { UpdateBanner } from "@/components/UpdateBanner"
 import { toast } from "sonner"
 import { useRecentFiles } from "@/hooks/useRecentFiles"
 
@@ -205,6 +206,7 @@ function App() {
         onChange={handleFileInput}
       />
 
+      <UpdateBanner />
       <Toaster position="bottom-center" />
     </Stack>
   )
