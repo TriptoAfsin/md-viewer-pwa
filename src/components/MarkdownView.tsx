@@ -77,14 +77,14 @@ export function MarkdownView({
         </Title>
       ),
       p: ({ children }) => (
-        <Text className="my-3 leading-7 text-foreground">{children}</Text>
+        <Text className="my-3 leading-7 text-foreground break-words">{children}</Text>
       ),
       a: ({ href, children }) => (
         <a
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary underline-offset-4 hover:underline transition-colors"
+          className="text-primary underline-offset-4 hover:underline transition-colors break-all"
         >
           {children}
         </a>
@@ -159,7 +159,7 @@ export function MarkdownView({
         // Inline code
         if (!lang && !className) {
           return (
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm text-foreground">
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm text-foreground break-all">
               {children}
             </code>
           )
@@ -185,7 +185,7 @@ export function MarkdownView({
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
-        <Box className="max-w-3xl mx-auto px-6 py-8 pb-24 animate-in fade-in duration-300">
+        <Box className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-24 w-full overflow-x-hidden animate-in fade-in duration-300">
           {/* Mobile filename */}
           {filename && (
             <Text className="text-xs text-muted-foreground mb-6 sm:hidden truncate">

@@ -1,77 +1,85 @@
 import { useState, useEffect, useRef, useCallback } from "react"
-import type { Highlighter } from "shiki"
 
-type ShikiState = {
-  highlighter: Highlighter | null
-  loading: boolean
-}
+type HighlighterInstance = Awaited<ReturnType<typeof import("shiki")["createHighlighter"]>>
 
 export function useShiki(theme: string, hasCodeBlocks: boolean) {
-  const [state, setState] = useState<ShikiState>({ highlighter: null, loading: false })
+  const [highlighter, setHighlighter] = useState<HighlighterInstance | null>(null)
+  const [loading, setLoading] = useState(false)
+  // Increment to force re-render of code blocks when theme changes
+  const [themeVersion, setThemeVersion] = useState(0)
   const themeRef = useRef(theme)
   themeRef.current = theme
 
+  // Initialize highlighter when code blocks exist
   useEffect(() => {
     if (!hasCodeBlocks) return
 
     let cancelled = false
-    setState((s) => ({ ...s, loading: true }))
+    setLoading(true)
 
-    import("shiki").then(({ createHighlighter }) =>
-      createHighlighter({
-        themes: [themeRef.current],
-        langs: [],
+    import("shiki")
+      .then(({ createHighlighter }) =>
+        createHighlighter({
+          themes: [themeRef.current],
+          langs: [],
+        })
+      )
+      .then((h) => {
+        if (!cancelled) {
+          setHighlighter(h)
+          setLoading(false)
+        }
       })
-    ).then((highlighter) => {
-      if (!cancelled) {
-        setState({ highlighter, loading: false })
-      }
-    }).catch(() => {
-      if (!cancelled) {
-        setState({ highlighter: null, loading: false })
-      }
-    })
+      .catch(() => {
+        if (!cancelled) setLoading(false)
+      })
 
     return () => {
       cancelled = true
     }
   }, [hasCodeBlocks])
 
-  // Load a new theme when it changes
+  // Load new theme and bump version to re-render
   useEffect(() => {
-    const h = state.highlighter
-    if (!h) return
+    if (!highlighter) return
 
-    const loadedThemes = h.getLoadedThemes()
-    if (!loadedThemes.includes(theme)) {
-      h.loadTheme(theme).catch(() => {
-        // Theme unavailable, keep current
-      })
+    const loadedThemes = highlighter.getLoadedThemes()
+    if (loadedThemes.includes(theme)) {
+      // Theme already loaded, just bump version to re-highlight
+      setThemeVersion((v) => v + 1)
+      return
     }
-  }, [theme, state.highlighter])
+
+    highlighter
+      .loadTheme(theme)
+      .then(() => setThemeVersion((v) => v + 1))
+      .catch(() => {
+        // Theme unavailable
+      })
+  }, [theme, highlighter])
 
   const highlight = useCallback(
     async (code: string, lang: string): Promise<string | null> => {
-      const h = state.highlighter
-      if (!h) return null
+      if (!highlighter) return null
 
       try {
-        const loadedLangs = h.getLoadedLanguages()
+        const loadedLangs = highlighter.getLoadedLanguages()
         if (!loadedLangs.includes(lang)) {
-          await h.loadLanguage(lang as Parameters<typeof h.loadLanguage>[0])
+          await highlighter.loadLanguage(lang as Parameters<typeof highlighter.loadLanguage>[0])
         }
 
-        return h.codeToHtml(code, {
+        return highlighter.codeToHtml(code, {
           lang,
           theme: themeRef.current,
         })
       } catch {
-        // Language not available, return null for fallback
         return null
       }
     },
-    [state.highlighter]
+    // themeVersion forces new callback when theme changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [highlighter, themeVersion]
   )
 
-  return { highlight, loading: state.loading, ready: !!state.highlighter }
+  return { highlight, loading, ready: !!highlighter }
 }

@@ -26,7 +26,7 @@ export function CodeBlock({ children, language, highlightedHtml }: CodeBlockProp
   }, [])
 
   return (
-    <Box className="group relative my-4 rounded-lg border border-border overflow-hidden">
+    <Box className="group relative my-4 rounded-lg border border-border overflow-hidden max-w-full">
       {/* Header bar */}
       <HStack className="h-9 px-3 justify-between bg-muted/50 border-b border-border">
         <Text as="span" className="text-xs text-muted-foreground font-mono">

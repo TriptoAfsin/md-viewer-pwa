@@ -1,5 +1,6 @@
 import {
   Sun, Moon, Monitor, FileText, FileDown, FolderOpen, Palette, EllipsisVertical,
+  Heart, Copyright, ExternalLink,
 } from "lucide-react"
 import { Box, HStack, Text } from "@/components/primitives"
 import { Logo } from "@/components/Logo"
@@ -149,6 +150,26 @@ export function Header({
                   ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => window.open("https://github.com/TriptoAfsin/md-viewer-pwa", "_blank")}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                GitHub
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => window.open("https://github.com/TriptoAfsin/md-viewer-pwa/issues", "_blank")}
+              >
+                <Heart className="h-4 w-4 mr-2" />
+                Contribute / Support
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <Box className="px-2 py-1.5">
+                <Text as="span" className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Copyright className="h-3 w-3" />
+                  {new Date().getFullYear()} MD View &middot; MIT License
+                </Text>
+              </Box>
             </DropdownMenuContent>
           </DropdownMenu>
         </HStack>
