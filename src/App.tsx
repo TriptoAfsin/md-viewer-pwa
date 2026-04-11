@@ -61,6 +61,12 @@ function App() {
           multiple: false,
         })
         const file = await handle.getFile()
+        const validExts = [".md", ".markdown", ".mdx", ".txt"]
+        const hasValidExt = validExts.some((ext) => file.name.toLowerCase().endsWith(ext))
+        if (!hasValidExt) {
+          toast.error("Unsupported file type. Please open a Markdown file (.md, .markdown, .mdx, .txt)")
+          return
+        }
         const content = await file.text()
         handleFileContent(content, file.name, handle)
         return
