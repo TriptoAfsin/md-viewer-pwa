@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" fill="none" viewBox="0 0 1200 630">
+  <!-- Background -->
+  <rect width="1200" height="630" rx="0" fill="#0c0a09"/>
+
+  <!-- Subtle grid pattern -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#292524" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="url(#grid)" opacity="0.5"/>
+
+  <!-- Gradient glow behind logo -->
+  <circle cx="600" cy="260" r="150" fill="#7c3aed" opacity="0.08"/>
+
+  <!-- Logo: Document + Lightning -->
+  <g transform="translate(552, 140)">
+    <rect x="6" y="2" width="84" height="102" rx="9" fill="#7c3aed" opacity="0.15"/>
+    <rect x="6" y="2" width="84" height="102" rx="9" stroke="#7c3aed" stroke-width="4" fill="none"/>
+    <line x1="28" y1="30" x2="54" y2="30" stroke="#7c3aed" stroke-width="3.5" stroke-linecap="round" opacity="0.4"/>
+    <line x1="28" y1="42" x2="68" y2="42" stroke="#7c3aed" stroke-width="3.5" stroke-linecap="round" opacity="0.3"/>
+    <line x1="28" y1="54" x2="60" y2="54" stroke="#7c3aed" stroke-width="3.5" stroke-linecap="round" opacity="0.2"/>
+    <path d="M58 16L36 52h16l-8 36L70 46H54l4-30z" fill="#7c3aed"/>
+    <path d="M58 16L36 52h16l-8 36L70 46H54l4-30z" fill="url(#bolt-grad)"/>
+  </g>
+
+  <defs>
+    <linearGradient id="bolt-grad" x1="46" y1="16" x2="56" y2="88" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#a78bfa"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Title -->
+  <text x="600" y="330" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="56" font-weight="700" fill="#f5f5f4" letter-spacing="-1">MD View</text>
+
+  <!-- Subtitle -->
+  <text x="600" y="375" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="22" fill="#a8a29e">Free, Open Source Markdown Viewer PWA</text>
+
+  <!-- Feature pills -->
+  <g transform="translate(600, 420)" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#a8a29e">
+    <!-- Pill 1 -->
+    <rect x="-280" y="-14" width="120" height="28" rx="14" fill="#292524" stroke="#3f3f46" stroke-width="1"/>
+    <text x="-220" y="5">Offline Ready</text>
+
+    <!-- Pill 2 -->
+    <rect x="-140" y="-14" width="140" height="28" rx="14" fill="#292524" stroke="#3f3f46" stroke-width="1"/>
+    <text x="-70" y="5">Syntax Highlight</text>
+
+    <!-- Pill 3 -->
+    <rect x="20" y="-14" width="120" height="28" rx="14" fill="#292524" stroke="#3f3f46" stroke-width="1"/>
+    <text x="80" y="5">Export to PDF</text>
+
+    <!-- Pill 4 -->
+    <rect x="160" y="-14" width="120" height="28" rx="14" fill="#292524" stroke="#3f3f46" stroke-width="1"/>
+    <text x="220" y="5">Dark Mode</text>
+  </g>
+
+  <!-- URL -->
+  <text x="600" y="560" text-anchor="middle" font-family="ui-monospace, monospace" font-size="16" fill="#78716c">md-viewer.t21.dev</text>
+
+  <!-- Accent line at bottom -->
+  <rect x="0" y="620" width="1200" height="10" fill="#7c3aed"/>
+</svg>
