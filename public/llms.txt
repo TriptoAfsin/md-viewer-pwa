@@ -1,0 +1,36 @@
+# MD View — Markdown Viewer PWA
+
+> A free, open-source, cross-platform Progressive Web App for viewing Markdown files beautifully on any device.
+
+MD View is a lightweight PWA that lets users open, view, edit, and export Markdown files directly in the browser. It works fully offline after first visit, respects user privacy (files never leave the device), and provides VS Code-quality syntax highlighting powered by Shiki.
+
+## Key Features
+
+- Open .md, .markdown, .mdx, .txt files via system file picker, drag & drop, or paste
+- Beautiful Markdown rendering with GitHub Flavored Markdown (GFM) support: tables, task lists, strikethrough
+- VS Code-quality code syntax highlighting via Shiki with 10 selectable themes
+- Light and dark mode with system preference detection
+- Edit mode with monospace editor and Tab indentation
+- Export to PDF (text-based, selectable) or plain text
+- Right-click context menu for quick actions
+- Recent files history with File System Access API support for re-opening
+- Full offline support via service worker (installable PWA)
+- Mobile-first responsive design
+- Zero server processing — 100% client-side, privacy-first
+
+## Tech Stack
+
+- React 19, TypeScript, Vite 8
+- Tailwind CSS 4, shadcn/ui components
+- react-markdown, remark-gfm
+- Shiki syntax highlighter (lazy-loaded)
+- jsPDF + jspdf-autotable for PDF export (lazy-loaded)
+- vite-plugin-pwa for offline support
+
+## Links
+
+- Website: https://md-viewer-pwa.vercel.app
+- GitHub: https://github.com/TriptoAfsin/md-viewer-pwa
+- Issues: https://github.com/TriptoAfsin/md-viewer-pwa/issues
+- Author: https://github.com/TriptoAfsin
+- License: MIT

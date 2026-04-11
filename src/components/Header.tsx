@@ -1,6 +1,6 @@
 import {
   Sun, Moon, Monitor, FileText, FileDown, FolderOpen, Palette, EllipsisVertical,
-  Heart, Copyright, ExternalLink, Pencil, Eye,
+  Heart, Copyright, ExternalLink, Pencil, Eye, Clock,
 } from "lucide-react"
 import { Box, HStack, Text } from "@/components/primitives"
 import { Logo } from "@/components/Logo"
@@ -9,6 +9,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -16,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTheme } from "@/hooks/useTheme"
+import type { RecentFile } from "@/hooks/useRecentFiles"
 
 const SHIKI_THEMES = [
   { value: "github-dark", label: "GitHub Dark" },
@@ -34,9 +36,11 @@ type HeaderProps = {
   filename: string | null
   shikiTheme: string
   editing: boolean
+  recentFiles: RecentFile[]
   onShikiThemeChange: (theme: string) => void
   onOpenFile: () => void
   onToggleEdit: () => void
+  onOpenRecent: (name: string) => void
   onExportPdf: () => void
   onExportText: () => void
 }
@@ -45,9 +49,11 @@ export function Header({
   filename,
   shikiTheme,
   editing,
+  recentFiles,
   onShikiThemeChange,
   onOpenFile,
   onToggleEdit,
+  onOpenRecent,
   onExportPdf,
   onExportText,
 }: HeaderProps) {
@@ -121,17 +127,34 @@ export function Header({
           </Button>
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="active:scale-[0.97]">
+            <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="active:scale-[0.97]" />}>
                 <EllipsisVertical className="h-4.5 w-4.5" />
                 <span className="sr-only">More options</span>
-              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-52">
               <DropdownMenuItem onClick={onOpenFile}>
                 <FolderOpen className="h-4 w-4 mr-2" />
                 Open File
               </DropdownMenuItem>
+              {recentFiles.length > 0 && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Clock className="h-4 w-4 mr-2" />
+                    Recent Files
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-56">
+                    {recentFiles.map((f) => (
+                      <DropdownMenuItem
+                        key={`${f.name}-${f.openedAt}`}
+                        onClick={() => onOpenRecent(f.name)}
+                      >
+                        <FileText className="h-4 w-4 mr-2 shrink-0" />
+                        <Text as="span" className="truncate">{f.name}</Text>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onExportPdf} disabled={!filename}>
                 <FileDown className="h-4 w-4 mr-2" />

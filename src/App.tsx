@@ -76,9 +76,26 @@ function App() {
       const file = e.target.files?.[0]
       if (!file) return
 
+      // Validate file type
+      const validExts = [".md", ".markdown", ".mdx", ".txt"]
+      const hasValidExt = validExts.some((ext) => file.name.toLowerCase().endsWith(ext))
+      if (!hasValidExt) {
+        toast.error("Unsupported file type. Please open a Markdown file (.md, .markdown, .mdx, .txt)")
+        e.target.value = ""
+        return
+      }
+
       const reader = new FileReader()
       reader.onload = () => {
-        handleFileContent(reader.result as string, file.name)
+        const content = reader.result as string
+        // Basic binary check — if >10% of first 1KB is non-printable, likely not text
+        const sample = content.slice(0, 1024)
+        const nonPrintable = sample.replace(/[\x20-\x7E\t\n\r]/g, "").length
+        if (sample.length > 0 && nonPrintable / sample.length > 0.1) {
+          toast.error("This file doesn't appear to be a text file")
+          return
+        }
+        handleFileContent(content, file.name)
       }
       reader.onerror = () => {
         toast.error("Failed to read file")
@@ -140,9 +157,11 @@ function App() {
         filename={filename}
         shikiTheme={shikiTheme}
         editing={editing}
+        recentFiles={recentFiles}
         onShikiThemeChange={handleShikiThemeChange}
         onOpenFile={handleOpenFile}
         onToggleEdit={handleToggleEdit}
+        onOpenRecent={handleOpenRecent}
         onExportPdf={handleExportPdf}
         onExportText={handleExportText}
       />

@@ -1,21 +1,13 @@
-import { type ElementType, type ComponentPropsWithRef, forwardRef } from "react"
+import type { ElementType, ComponentPropsWithoutRef } from "react"
 import { cn } from "@/lib/utils"
 
 type BoxProps<T extends ElementType = "div"> = {
   as?: T
   className?: string
-} & Omit<ComponentPropsWithRef<T>, "as" | "className"> & {
-  className?: string
-}
+  children?: React.ReactNode
+} & ComponentPropsWithoutRef<T>
 
-function BoxInner<T extends ElementType = "div">(
-  { as, className, ...props }: BoxProps<T>,
-  ref: React.ForwardedRef<Element>
-) {
+export function Box<T extends ElementType = "div">({ as, className, ...props }: BoxProps<T>) {
   const Comp = as || "div"
-  return <Comp ref={ref} className={cn(className)} {...props} />
+  return <Comp className={cn(className)} {...(props as any)} />
 }
-
-export const Box = forwardRef(BoxInner) as <T extends ElementType = "div">(
-  props: BoxProps<T> & { ref?: React.Ref<Element> }
-) => React.ReactElement | null

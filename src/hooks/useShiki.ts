@@ -51,7 +51,7 @@ export function useShiki(theme: string, hasCodeBlocks: boolean) {
     }
 
     highlighter
-      .loadTheme(theme)
+      .loadTheme(theme as any)
       .then(() => setThemeVersion((v) => v + 1))
       .catch(() => {
         // Theme unavailable

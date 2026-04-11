@@ -8,11 +8,64 @@
     <meta name="theme-color" content="#7c3aed" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="description" content="A sleek PWA to view, highlight, and export Markdown files on any device." />
-    <meta property="og:title" content="MD View — Markdown Viewer" />
-    <meta property="og:description" content="View Markdown beautifully on any device. Offline-ready." />
+
+    <!-- SEO -->
+    <title>MD View — Free Online Markdown Viewer | Open Source PWA</title>
+    <meta name="description" content="MD View is a free, open-source Markdown viewer PWA. View, edit, and export .md files with syntax highlighting. Works offline on any device. No signup required." />
+    <meta name="keywords" content="markdown viewer, markdown reader, md viewer, pwa, offline markdown, markdown to pdf, syntax highlighting, open source, free, cross-platform" />
+    <meta name="author" content="TriptoAfsin" />
+    <link rel="canonical" href="https://md-viewer-pwa.vercel.app" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="MD View — Free Online Markdown Viewer" />
+    <meta property="og:description" content="View, edit, and export Markdown files beautifully on any device. Offline-ready, open source, free forever." />
     <meta property="og:type" content="website" />
-    <title>MD View — Markdown Viewer</title>
+    <meta property="og:url" content="https://md-viewer-pwa.vercel.app" />
+    <meta property="og:site_name" content="MD View" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="MD View — Free Online Markdown Viewer" />
+    <meta name="twitter:description" content="View, edit, and export Markdown files beautifully. Offline PWA, open source." />
+
+    <!-- Structured Data for Google -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "MD View",
+      "alternateName": "MD View — Markdown Viewer",
+      "description": "A free, open-source Progressive Web App for viewing, editing, and exporting Markdown files with syntax highlighting. Works offline on any device.",
+      "url": "https://md-viewer-pwa.vercel.app",
+      "applicationCategory": "UtilitiesApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires a modern web browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "TriptoAfsin",
+        "url": "https://github.com/TriptoAfsin"
+      },
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "featureList": [
+        "Markdown rendering with GFM support",
+        "VS Code-quality syntax highlighting",
+        "Export to PDF and plain text",
+        "Light and dark mode",
+        "Full offline support",
+        "Drag and drop file opening",
+        "Edit mode with live preview",
+        "Recent files history",
+        "Cross-platform PWA"
+      ]
+    }
+    </script>
+
     <!-- Prevent FOUC: apply dark class before first paint -->
     <script>
       (function() {

@@ -41,7 +41,6 @@ export function MarkdownEditor({ value, onChange }: MarkdownEditorProps) {
         as="textarea"
         ref={textareaRef}
         className="flex-1 w-full resize-none rounded-lg border border-border bg-card p-4 font-mono text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-shadow"
-        // @ts-expect-error polymorphic textarea props
         value={value}
         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}

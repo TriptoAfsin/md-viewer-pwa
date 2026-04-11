@@ -1,22 +1,14 @@
-import { type ElementType, type ComponentPropsWithRef, forwardRef } from "react"
+import type { ElementType, ComponentPropsWithoutRef } from "react"
 import { cn } from "@/lib/utils"
 
 type StackProps<T extends ElementType = "div"> = {
   as?: T
   gap?: string
   className?: string
-} & Omit<ComponentPropsWithRef<T>, "as" | "className"> & {
-  className?: string
-}
+  children?: React.ReactNode
+} & ComponentPropsWithoutRef<T>
 
-function StackInner<T extends ElementType = "div">(
-  { as, gap = "gap-4", className, ...props }: StackProps<T>,
-  ref: React.ForwardedRef<Element>
-) {
+export function Stack<T extends ElementType = "div">({ as, gap = "gap-4", className, ...props }: StackProps<T>) {
   const Comp = as || "div"
-  return <Comp ref={ref} className={cn("flex flex-col", gap, className)} {...props} />
+  return <Comp className={cn("flex flex-col", gap, className)} {...(props as any)} />
 }
-
-export const Stack = forwardRef(StackInner) as <T extends ElementType = "div">(
-  props: StackProps<T> & { ref?: React.Ref<Element> }
-) => React.ReactElement | null

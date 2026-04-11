@@ -115,7 +115,6 @@ export function MarkdownView({
         <Box
           as="img"
           className="max-w-full rounded-lg my-4"
-          // @ts-expect-error polymorphic img props
           src={src}
           alt={alt || ""}
           loading="lazy"
@@ -184,8 +183,7 @@ export function MarkdownView({
 
   return (
     <ContextMenu>
-      <ContextMenuTrigger asChild>
-        <Box className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-24 w-full overflow-x-hidden animate-in fade-in duration-300">
+      <ContextMenuTrigger className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-24 w-full overflow-x-hidden animate-in fade-in duration-300">
           {/* Mobile filename */}
           {filename && (
             <Text className="text-xs text-muted-foreground mb-6 sm:hidden truncate">
@@ -196,7 +194,6 @@ export function MarkdownView({
           <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
             {content}
           </ReactMarkdown>
-        </Box>
       </ContextMenuTrigger>
 
       <ContextMenuContent className="w-52 animate-in fade-in slide-in-from-top-1 duration-150">
