@@ -1,6 +1,6 @@
 import {
   Sun, Moon, Monitor, FileText, FileDown, FolderOpen, Palette, EllipsisVertical,
-  Heart, Copyright, ExternalLink,
+  Heart, Copyright, ExternalLink, Pencil, Eye,
 } from "lucide-react"
 import { Box, HStack, Text } from "@/components/primitives"
 import { Logo } from "@/components/Logo"
@@ -33,8 +33,10 @@ const SHIKI_THEMES = [
 type HeaderProps = {
   filename: string | null
   shikiTheme: string
+  editing: boolean
   onShikiThemeChange: (theme: string) => void
   onOpenFile: () => void
+  onToggleEdit: () => void
   onExportPdf: () => void
   onExportText: () => void
 }
@@ -42,8 +44,10 @@ type HeaderProps = {
 export function Header({
   filename,
   shikiTheme,
+  editing,
   onShikiThemeChange,
   onOpenFile,
+  onToggleEdit,
   onExportPdf,
   onExportText,
 }: HeaderProps) {
@@ -77,6 +81,18 @@ export function Header({
             <FolderOpen className="h-4.5 w-4.5" />
             <span className="sr-only">Open file</span>
           </Button>
+          {filename && (
+            <Button
+              variant={editing ? "default" : "ghost"}
+              size="icon"
+              onClick={onToggleEdit}
+              className="active:scale-[0.97]"
+              title={editing ? "Preview" : "Edit"}
+            >
+              {editing ? <Eye className="h-4.5 w-4.5" /> : <Pencil className="h-4.5 w-4.5" />}
+              <span className="sr-only">{editing ? "Preview" : "Edit"}</span>
+            </Button>
+          )}
         </HStack>
 
         {/* Center: filename */}

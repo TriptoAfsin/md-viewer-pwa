@@ -3,6 +3,7 @@ import { Box, Stack } from "@/components/primitives"
 import { Header } from "@/components/Header"
 import { DropZone } from "@/components/DropZone"
 import { MarkdownView } from "@/components/MarkdownView"
+import { MarkdownEditor } from "@/components/MarkdownEditor"
 import { Toaster } from "@/components/ui/sonner"
 import { toast } from "sonner"
 import { useRecentFiles } from "@/hooks/useRecentFiles"
@@ -20,6 +21,7 @@ function getStoredShikiTheme(): string {
 function App() {
   const [markdown, setMarkdown] = useState<string | null>(null)
   const [filename, setFilename] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
   const [shikiTheme, setShikiTheme] = useState(getStoredShikiTheme)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { addRecentFile, openRecentFile, recentFiles } = useRecentFiles()
@@ -37,13 +39,13 @@ function App() {
     (content: string, name: string, handle?: FileSystemFileHandle) => {
       setMarkdown(content)
       setFilename(name)
+      setEditing(false)
       addRecentFile(name, content.length, handle)
     },
     [addRecentFile]
   )
 
   const handleOpenFile = useCallback(async () => {
-    // Try File System Access API first (Chrome/Edge) for handle storage
     if ("showOpenFilePicker" in window) {
       try {
         const [handle] = await window.showOpenFilePicker({
@@ -63,11 +65,9 @@ function App() {
         handleFileContent(content, file.name, handle)
         return
       } catch (e) {
-        // User cancelled or API not available — fall through to input
         if (e instanceof DOMException && e.name === "AbortError") return
       }
     }
-    // Fallback: regular file input
     fileInputRef.current?.click()
   }, [handleFileContent])
 
@@ -95,6 +95,7 @@ function App() {
       if (result) {
         setMarkdown(result.content)
         setFilename(result.name)
+        setEditing(false)
         toast.success(`Opened ${result.name}`)
       } else {
         toast.error("Cannot re-open file. Use the file picker to open it again.")
@@ -102,6 +103,14 @@ function App() {
     },
     [openRecentFile]
   )
+
+  const handleToggleEdit = useCallback(() => {
+    setEditing((prev) => !prev)
+  }, [])
+
+  const handleEditorChange = useCallback((value: string) => {
+    setMarkdown(value)
+  }, [])
 
   const handleExportPdf = useCallback(async () => {
     if (!markdown || !filename) return
@@ -130,22 +139,28 @@ function App() {
       <Header
         filename={filename}
         shikiTheme={shikiTheme}
+        editing={editing}
         onShikiThemeChange={handleShikiThemeChange}
         onOpenFile={handleOpenFile}
+        onToggleEdit={handleToggleEdit}
         onExportPdf={handleExportPdf}
         onExportText={handleExportText}
       />
 
       <Box as="main" className="flex-1 flex flex-col">
-        {markdown ? (
-          <MarkdownView
-            content={markdown}
-            filename={filename}
-            shikiTheme={shikiTheme}
-            onOpenFile={handleOpenFile}
-            onExportPdf={handleExportPdf}
-            onExportText={handleExportText}
-          />
+        {markdown != null ? (
+          editing ? (
+            <MarkdownEditor value={markdown} onChange={handleEditorChange} />
+          ) : (
+            <MarkdownView
+              content={markdown}
+              filename={filename}
+              shikiTheme={shikiTheme}
+              onOpenFile={handleOpenFile}
+              onExportPdf={handleExportPdf}
+              onExportText={handleExportText}
+            />
+          )
         ) : (
           <DropZone
             onFileContent={handleFileContent}
@@ -156,7 +171,6 @@ function App() {
         )}
       </Box>
 
-      {/* Fallback file input for browsers without FSAA */}
       <input
         ref={fileInputRef}
         type="file"
