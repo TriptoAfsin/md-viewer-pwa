@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="public/favicon.svg" width="80" height="80" alt="MD Viewer PWA logo" />
+  <img src="public/favicon.svg" width="80" height="80" alt="MD View logo" />
 </p>
 
-<h1 align="center">MD Viewer PWA</h1>
+<h1 align="center">MD View</h1>
 
 <p align="center">
   A sleek, lightweight Progressive Web App for viewing Markdown files on any device.
@@ -23,10 +23,15 @@
 ## Features
 
 - **System file picker** — open any `.md` file from your device
-- **Beautiful rendering** — clean, typographic Markdown display
-- **Code syntax highlighting** — language-aware highlighting for fenced code blocks
+- **Drag & drop** — drop files directly onto the page
+- **Paste markdown** — paste raw markdown text to preview instantly
+- **Beautiful rendering** — clean, typographic Markdown display with GFM support
+- **Code syntax highlighting** — VS Code-quality highlighting powered by Shiki with 10 selectable themes
 - **Light & dark mode** — respects system preference with manual toggle
-- **Export** — save rendered Markdown as PDF or plain text
+- **Export to PDF** — text-based, selectable PDF output via jsPDF
+- **Export to plain text** — stripped markdown formatting
+- **Right-click context menu** — copy, export, and open files from the context menu
+- **Recent files** — quickly see your previously opened files
 - **Mobile-first** — optimized for phones and tablets, works great on desktop too
 - **Offline-ready** — full PWA with service worker, install it and use it anywhere
 - **Privacy-first** — files never leave your device, zero server processing
@@ -37,6 +42,10 @@
 - [Vite 8](https://vite.dev/) with React Compiler
 - [Tailwind CSS 4](https://tailwindcss.com/)
 - [shadcn/ui](https://ui.shadcn.com/) components
+- [react-markdown](https://github.com/remarkjs/react-markdown) + [remark-gfm](https://github.com/remarkjs/remark-gfm)
+- [Shiki](https://shiki.style/) syntax highlighter
+- [jsPDF](https://github.com/parallax/jsPDF) for PDF export
+- [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) for offline support
 
 ## Getting Started
 
@@ -49,6 +58,9 @@ npm run dev
 
 # Build for production
 npm run build
+
+# Preview production build
+npm run preview
 ```
 
 ## Contributing
