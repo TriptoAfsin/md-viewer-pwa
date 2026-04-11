@@ -22,7 +22,9 @@ export default defineConfig({
         background_color: '#fafaf9',
         display: 'standalone',
         orientation: 'any',
+        scope: '/',
         start_url: '/',
+        categories: ['productivity', 'utilities'],
         icons: [
           {
             src: '/favicon.svg',
@@ -40,6 +42,15 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable',
+          },
+        ],
+        file_handlers: [
+          {
+            action: '/',
+            accept: {
+              'text/markdown': ['.md', '.markdown', '.mdx'],
+              'text/plain': ['.txt'],
+            },
           },
         ],
       },
