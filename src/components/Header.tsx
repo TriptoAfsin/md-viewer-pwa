@@ -1,6 +1,7 @@
+import { useState } from "react"
 import {
   Sun, Moon, Monitor, FileText, FileDown, FolderOpen, Palette, EllipsisVertical,
-  Heart, Copyright, ExternalLink, Pencil, Eye, Clock,
+  Heart, Copyright, ExternalLink, Pencil, Eye, Clock, Trash2,
 } from "lucide-react"
 import { Box, HStack, Text } from "@/components/primitives"
 import { Logo } from "@/components/Logo"
@@ -40,6 +41,7 @@ type HeaderProps = {
   onOpenFile: () => void
   onToggleEdit: () => void
   onOpenRecent: (name: string) => void
+  onRemoveRecent: (name: string) => void
   onExportPdf: () => void
   onExportText: () => void
 }
@@ -53,6 +55,7 @@ export function Header({
   onOpenFile,
   onToggleEdit,
   onOpenRecent,
+  onRemoveRecent,
   onExportPdf,
   onExportText,
 }: HeaderProps) {
@@ -141,15 +144,14 @@ export function Header({
                     <Clock className="h-4 w-4 mr-2" />
                     Recent Files
                   </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="w-56">
+                  <DropdownMenuSubContent className="w-60">
                     {recentFiles.map((f) => (
-                      <DropdownMenuItem
+                      <RecentFileItem
                         key={`${f.name}-${f.openedAt}`}
-                        onClick={() => onOpenRecent(f.name)}
-                      >
-                        <FileText className="h-4 w-4 mr-2 shrink-0" />
-                        <Text as="span" className="truncate">{f.name}</Text>
-                      </DropdownMenuItem>
+                        file={f}
+                        onOpen={() => onOpenRecent(f.name)}
+                        onRemove={() => onRemoveRecent(f.name)}
+                      />
                     ))}
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
@@ -212,6 +214,68 @@ export function Header({
           </DropdownMenu>
         </HStack>
       </HStack>
+    </Box>
+  )
+}
+
+function RecentFileItem({
+  file,
+  onOpen,
+  onRemove,
+}: {
+  file: RecentFile
+  onOpen: () => void
+  onRemove: () => void
+}) {
+  const [confirming, setConfirming] = useState(false)
+
+  if (confirming) {
+    return (
+      <Box className="flex items-center gap-1 px-1.5 py-1">
+        <Text as="span" className="text-xs text-muted-foreground flex-1">Remove?</Text>
+        <Button
+          variant="destructive"
+          size="sm"
+          className="h-6 px-2 text-xs"
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation()
+            onRemove()
+          }}
+        >
+          Yes
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-6 px-2 text-xs"
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation()
+            setConfirming(false)
+          }}
+        >
+          No
+        </Button>
+      </Box>
+    )
+  }
+
+  return (
+    <Box className="flex items-center group">
+      <DropdownMenuItem className="flex-1" onClick={onOpen}>
+        <FileText className="h-4 w-4 mr-2 shrink-0" />
+        <Text as="span" className="truncate">{file.name}</Text>
+      </DropdownMenuItem>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity mr-1"
+        onClick={(e: React.MouseEvent) => {
+          e.stopPropagation()
+          setConfirming(true)
+        }}
+      >
+        <Trash2 className="h-3 w-3 text-muted-foreground" />
+      </Button>
     </Box>
   )
 }

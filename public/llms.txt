@@ -29,7 +29,7 @@ MD View is a lightweight PWA that lets users open, view, edit, and export Markdo
 
 ## Links
 
-- Website: https://md-viewer-pwa.vercel.app
+- Website: https://md-viewer.t21.dev
 - GitHub: https://github.com/TriptoAfsin/md-viewer-pwa
 - Issues: https://github.com/TriptoAfsin/md-viewer-pwa/issues
 - Author: https://github.com/TriptoAfsin

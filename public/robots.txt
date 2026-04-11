@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://md-viewer-pwa.vercel.app/sitemap.xml
+Sitemap: https://md-viewer.t21.dev/sitemap.xml

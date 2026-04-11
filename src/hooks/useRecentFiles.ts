@@ -154,5 +154,20 @@ export function useRecentFiles() {
     []
   )
 
-  return { recentFiles, addRecentFile, openRecentFile } as const
+  const removeRecentFile = useCallback((name: string) => {
+    setRecentFiles((prev) => {
+      const next = prev.filter((f) => f.name !== name)
+      persistMeta(next.map(({ hasHandle: _, ...rest }) => rest))
+      return next
+    })
+    // Also remove handle from IndexedDB
+    if (supportsFileSystemAccess()) {
+      openDB().then((db) => {
+        const tx = db.transaction(IDB_STORE, "readwrite")
+        tx.objectStore(IDB_STORE).delete(name)
+      }).catch(() => {})
+    }
+  }, [])
+
+  return { recentFiles, addRecentFile, openRecentFile, removeRecentFile } as const
 }

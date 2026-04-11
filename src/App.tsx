@@ -24,7 +24,7 @@ function App() {
   const [editing, setEditing] = useState(false)
   const [shikiTheme, setShikiTheme] = useState(getStoredShikiTheme)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { addRecentFile, openRecentFile, recentFiles } = useRecentFiles()
+  const { addRecentFile, openRecentFile, removeRecentFile, recentFiles } = useRecentFiles()
 
   const handleShikiThemeChange = useCallback((theme: string) => {
     setShikiTheme(theme)
@@ -168,6 +168,7 @@ function App() {
         onOpenFile={handleOpenFile}
         onToggleEdit={handleToggleEdit}
         onOpenRecent={handleOpenRecent}
+        onRemoveRecent={removeRecentFile}
         onExportPdf={handleExportPdf}
         onExportText={handleExportText}
       />
