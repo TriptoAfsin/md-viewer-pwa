@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import rehypeSlug from "rehype-slug"
 import { FolderOpen, FileDown, FileText, ClipboardCopy } from "lucide-react"
 import { Box, Text, Title } from "@/components/primitives"
 import { CodeBlock } from "@/components/CodeBlock"
@@ -46,49 +47,59 @@ export function MarkdownView({
 
   const components: Components = useMemo(
     () => ({
-      h1: ({ children }) => (
-        <Title level={1} className="text-3xl mt-8 mb-4 pb-2 border-b border-border text-foreground">
+      h1: ({ children, id }) => (
+        <Title level={1} id={id} className="text-3xl mt-8 mb-4 pb-2 border-b border-border text-foreground">
           {children}
         </Title>
       ),
-      h2: ({ children }) => (
-        <Title level={2} className="text-2xl mt-6 mb-3 pb-1.5 border-b border-border text-foreground">
+      h2: ({ children, id }) => (
+        <Title level={2} id={id} className="text-2xl mt-6 mb-3 pb-1.5 border-b border-border text-foreground">
           {children}
         </Title>
       ),
-      h3: ({ children }) => (
-        <Title level={3} className="text-xl mt-5 mb-2 text-foreground">
+      h3: ({ children, id }) => (
+        <Title level={3} id={id} className="text-xl mt-5 mb-2 text-foreground">
           {children}
         </Title>
       ),
-      h4: ({ children }) => (
-        <Title level={4} className="text-lg mt-4 mb-2 text-foreground">
+      h4: ({ children, id }) => (
+        <Title level={4} id={id} className="text-lg mt-4 mb-2 text-foreground">
           {children}
         </Title>
       ),
-      h5: ({ children }) => (
-        <Title level={5} className="text-base mt-3 mb-1 text-foreground">
+      h5: ({ children, id }) => (
+        <Title level={5} id={id} className="text-base mt-3 mb-1 text-foreground">
           {children}
         </Title>
       ),
-      h6: ({ children }) => (
-        <Title level={6} className="text-sm mt-3 mb-1 text-muted-foreground">
+      h6: ({ children, id }) => (
+        <Title level={6} id={id} className="text-sm mt-3 mb-1 text-muted-foreground">
           {children}
         </Title>
       ),
       p: ({ children }) => (
         <Text className="my-3 leading-7 text-foreground break-words">{children}</Text>
       ),
-      a: ({ href, children }) => (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary underline-offset-4 hover:underline transition-colors break-all"
-        >
-          {children}
-        </a>
-      ),
+      a: ({ href, children }) => {
+        const isAnchor = href?.startsWith("#")
+        return (
+          <a
+            href={href}
+            {...(isAnchor
+              ? {
+                  onClick: (e: React.MouseEvent<HTMLAnchorElement>) => {
+                    e.preventDefault()
+                    const id = href!.slice(1)
+                    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
+                  },
+                }
+              : { target: "_blank", rel: "noopener noreferrer" })}
+            className="text-primary underline-offset-4 hover:underline transition-colors break-all"
+          >
+            {children}
+          </a>
+        )
+      },
       blockquote: ({ children }) => (
         <Box
           as="blockquote"
@@ -191,7 +202,7 @@ export function MarkdownView({
             </Text>
           )}
 
-          <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]} components={components}>
             {content}
           </ReactMarkdown>
       </ContextMenuTrigger>
