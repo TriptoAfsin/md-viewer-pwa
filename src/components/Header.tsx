@@ -1,7 +1,8 @@
 import { useState } from "react"
 import {
   Sun, Moon, Monitor, FileText, FileDown, FolderOpen, Palette, EllipsisVertical,
-  Heart, Copyright, ExternalLink, Pencil, Eye, Clock, Trash2,
+  Heart, Copyright, ExternalLink, Pencil, Eye, Clock, Trash2, ClipboardPaste,
+  Save, Home, Download,
 } from "lucide-react"
 import { Box, HStack, Text } from "@/components/primitives"
 import { Logo } from "@/components/Logo"
@@ -36,6 +37,7 @@ type HeaderProps = {
   filename: string | null
   shikiTheme: string
   editing: boolean
+  hasFileHandle: boolean
   recentFiles: RecentFile[]
   onShikiThemeChange: (theme: string) => void
   onOpenFile: () => void
@@ -44,12 +46,17 @@ type HeaderProps = {
   onRemoveRecent: (name: string) => void
   onExportPdf: () => void
   onExportText: () => void
+  onPaste: () => void
+  onSave: () => void
+  onSaveAs: () => void
+  onGoHome: () => void
 }
 
 export function Header({
   filename,
   shikiTheme,
   editing,
+  hasFileHandle,
   recentFiles,
   onShikiThemeChange,
   onOpenFile,
@@ -58,6 +65,10 @@ export function Header({
   onRemoveRecent,
   onExportPdf,
   onExportText,
+  onPaste,
+  onSave,
+  onSaveAs,
+  onGoHome,
 }: HeaderProps) {
   const { theme, setTheme } = useTheme()
 
@@ -73,12 +84,27 @@ export function Header({
       className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm"
     >
       <HStack className="h-14 px-4 justify-between">
-        {/* Left: Logo + name + open file */}
+        {/* Left: Logo/Home + name + actions */}
         <HStack gap="gap-1.5">
-          <Logo size={24} className="text-primary" />
-          <Text as="span" className="font-semibold text-sm text-foreground mr-1">
-            MD View
-          </Text>
+          {filename ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onGoHome}
+              className="active:scale-[0.97]"
+              title="Home"
+            >
+              <Home className="h-4.5 w-4.5" />
+              <span className="sr-only">Home</span>
+            </Button>
+          ) : (
+            <>
+              <Logo size={24} className="text-primary" />
+              <Text as="span" className="font-semibold text-sm text-foreground mr-1">
+                MD View
+              </Text>
+            </>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -138,6 +164,22 @@ export function Header({
                 <FolderOpen className="h-4 w-4 mr-2" />
                 Open File
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={onPaste}>
+                <ClipboardPaste className="h-4 w-4 mr-2" />
+                Paste Markdown
+              </DropdownMenuItem>
+              {filename && hasFileHandle && (
+                <DropdownMenuItem onClick={onSave}>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save
+                </DropdownMenuItem>
+              )}
+              {filename && (
+                <DropdownMenuItem onClick={onSaveAs}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Save As
+                </DropdownMenuItem>
+              )}
               {recentFiles.length > 0 && (
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>

@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react"
-import { FileUp, Clock, FileText, ExternalLink } from "lucide-react"
+import { FileUp, Clock, FileText, ExternalLink, ClipboardPaste, X } from "lucide-react"
 import { Box, Stack, Text, Title } from "@/components/primitives"
 import { Logo } from "@/components/Logo"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,8 @@ type DropZoneProps = {
   onFileContent: (content: string, name: string) => void
   onOpenFile: () => void
   onOpenRecent: (name: string) => void
+  onRemoveRecent: (name: string) => void
+  onPaste: () => void
   recentFiles: RecentFile[]
 }
 
@@ -39,7 +41,7 @@ function formatDate(ts: number): string {
   return d.toLocaleDateString()
 }
 
-export function DropZone({ onFileContent, onOpenFile, onOpenRecent, recentFiles }: DropZoneProps) {
+export function DropZone({ onFileContent, onOpenFile, onOpenRecent, onRemoveRecent, onPaste, recentFiles }: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false)
 
   const handleFile = useCallback(
@@ -122,17 +124,28 @@ export function DropZone({ onFileContent, onOpenFile, onOpenRecent, recentFiles 
             </Text>
           </Stack>
 
-          <Button
-            size="lg"
-            onClick={onOpenFile}
-            className="active:scale-[0.97] transition-transform"
-          >
-            <FileUp className="h-4 w-4 mr-2" />
-            Open File
-          </Button>
+          <Box className="flex gap-2">
+            <Button
+              size="lg"
+              onClick={onOpenFile}
+              className="active:scale-[0.97] transition-transform"
+            >
+              <FileUp className="h-4 w-4 mr-2" />
+              Open File
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={onPaste}
+              className="active:scale-[0.97] transition-transform"
+            >
+              <ClipboardPaste className="h-4 w-4 mr-2" />
+              Paste
+            </Button>
+          </Box>
 
           <Text className="text-xs text-muted-foreground">
-            or drag a file here, or paste markdown
+            or drag a file here
           </Text>
         </Stack>
 
@@ -172,12 +185,22 @@ export function DropZone({ onFileContent, onOpenFile, onOpenRecent, recentFiles 
                     </Text>
                   </Box>
                   <Box className="flex items-center gap-2 shrink-0 ml-3">
-                    <Text as="span" className="text-xs text-muted-foreground">
+                    <Text as="span" className="text-xs text-muted-foreground hidden sm:inline">
                       {formatBytes(file.size)} &middot; {formatDate(file.openedAt)}
                     </Text>
                     {file.hasHandle && (
                       <ExternalLink className="h-3 w-3 text-muted-foreground" />
                     )}
+                    <button
+                      className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                      title="Remove from recent"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onRemoveRecent(file.name)
+                      }}
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
                   </Box>
                 </Box>
               ))}

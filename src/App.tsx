@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useRef, type RefObject } from "react"
 import { Box, Stack } from "@/components/primitives"
 import { Header } from "@/components/Header"
 import { DropZone } from "@/components/DropZone"
@@ -24,7 +24,11 @@ function App() {
   const [filename, setFilename] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
   const [shikiTheme, setShikiTheme] = useState(getStoredShikiTheme)
+  const [fileHandle, setFileHandle] = useState<FileSystemFileHandle | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // Always-current markdown ref so export callbacks never read stale closures
+  const markdownRef: RefObject<string | null> = useRef(markdown)
+  markdownRef.current = markdown
   const { addRecentFile, openRecentFile, removeRecentFile, recentFiles } = useRecentFiles()
 
   const handleShikiThemeChange = useCallback((theme: string) => {
@@ -40,6 +44,7 @@ function App() {
     (content: string, name: string, handle?: FileSystemFileHandle) => {
       setMarkdown(content)
       setFilename(name)
+      setFileHandle(handle ?? null)
       setEditing(false)
       addRecentFile(name, content.length, handle)
     },
@@ -128,6 +133,20 @@ function App() {
     [openRecentFile]
   )
 
+  const handlePasteFromClipboard = useCallback(async () => {
+    try {
+      const text = await navigator.clipboard.readText()
+      if (text.trim()) {
+        handleFileContent(text, "pasted-content.md")
+        toast.success("Pasted from clipboard")
+      } else {
+        toast.error("Clipboard is empty")
+      }
+    } catch {
+      toast.error("Cannot read clipboard. Please allow clipboard access.")
+    }
+  }, [handleFileContent])
+
   const handleToggleEdit = useCallback(() => {
     setEditing((prev) => !prev)
   }, [])
@@ -137,26 +156,94 @@ function App() {
   }, [])
 
   const handleExportPdf = useCallback(async () => {
-    if (!markdown || !filename) return
+    const current = markdownRef.current
+    if (!current || !filename) return
     try {
       const { exportToPdf } = await import("@/lib/export-pdf")
-      await exportToPdf(markdown, filename)
+      await exportToPdf(current, filename)
       toast.success("PDF exported successfully")
     } catch {
       toast.error("Failed to export PDF")
     }
-  }, [markdown, filename])
+  }, [filename])
 
   const handleExportText = useCallback(async () => {
-    if (!markdown || !filename) return
+    const current = markdownRef.current
+    if (!current || !filename) return
     try {
       const { exportToText } = await import("@/lib/export-text")
-      exportToText(markdown, filename)
+      exportToText(current, filename)
       toast.success("Text file exported successfully")
     } catch {
       toast.error("Failed to export text")
     }
-  }, [markdown, filename])
+  }, [filename])
+
+  const handleSave = useCallback(async () => {
+    const current = markdownRef.current
+    if (!current || !fileHandle) return
+    try {
+      const permission = await fileHandle.requestPermission({ mode: "readwrite" })
+      if (permission !== "granted") {
+        toast.error("Write permission denied")
+        return
+      }
+      const writable = await fileHandle.createWritable()
+      await writable.write(current)
+      await writable.close()
+      toast.success("File saved")
+    } catch {
+      toast.error("Failed to save file")
+    }
+  }, [fileHandle])
+
+  const handleSaveAs = useCallback(async () => {
+    const current = markdownRef.current
+    if (!current) return
+    if (!("showSaveFilePicker" in window)) {
+      // Fallback: download as file
+      const blob = new Blob([current], { type: "text/markdown;charset=utf-8" })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = filename || "document.md"
+      a.click()
+      URL.revokeObjectURL(url)
+      toast.success("File downloaded")
+      return
+    }
+    try {
+      const handle = await window.showSaveFilePicker!({
+        suggestedName: filename || "document.md",
+        types: [
+          {
+            description: "Markdown files",
+            accept: { "text/markdown": [".md", ".markdown", ".mdx"] },
+          },
+          {
+            description: "Text files",
+            accept: { "text/plain": [".txt"] },
+          },
+        ],
+      })
+      const writable = await handle.createWritable()
+      await writable.write(current)
+      await writable.close()
+      setFileHandle(handle)
+      setFilename(handle.name)
+      toast.success(`Saved as ${handle.name}`)
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "AbortError") return
+      toast.error("Failed to save file")
+    }
+  }, [filename])
+
+  const handleGoHome = useCallback(() => {
+    setMarkdown(null)
+    setFilename(null)
+    setFileHandle(null)
+    setEditing(false)
+  }, [])
 
   return (
     <Stack gap="gap-0" className="min-h-svh">
@@ -164,6 +251,7 @@ function App() {
         filename={filename}
         shikiTheme={shikiTheme}
         editing={editing}
+        hasFileHandle={!!fileHandle}
         recentFiles={recentFiles}
         onShikiThemeChange={handleShikiThemeChange}
         onOpenFile={handleOpenFile}
@@ -172,6 +260,10 @@ function App() {
         onRemoveRecent={removeRecentFile}
         onExportPdf={handleExportPdf}
         onExportText={handleExportText}
+        onPaste={handlePasteFromClipboard}
+        onSave={handleSave}
+        onSaveAs={handleSaveAs}
+        onGoHome={handleGoHome}
       />
 
       <Box as="main" className="flex-1 flex flex-col">
@@ -193,6 +285,8 @@ function App() {
             onFileContent={handleFileContent}
             onOpenFile={handleOpenFile}
             onOpenRecent={handleOpenRecent}
+            onRemoveRecent={removeRecentFile}
+            onPaste={handlePasteFromClipboard}
             recentFiles={recentFiles}
           />
         )}

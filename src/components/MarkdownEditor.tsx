@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useCallback } from "react"
 import { Box } from "@/components/primitives"
 
 type MarkdownEditorProps = {
@@ -17,17 +17,16 @@ export function MarkdownEditor({ value, onChange }: MarkdownEditorProps) {
     }
   }, [])
 
+  const handleInput = useCallback(() => {
+    const el = textareaRef.current
+    if (el) onChange(el.value)
+  }, [onChange])
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Tab") {
       e.preventDefault()
-      const el = e.currentTarget
-      const start = el.selectionStart
-      const end = el.selectionEnd
-      const newValue = value.slice(0, start) + "  " + value.slice(end)
-      onChange(newValue)
-      requestAnimationFrame(() => {
-        el.selectionStart = el.selectionEnd = start + 2
-      })
+      // execCommand preserves the native undo stack
+      document.execCommand("insertText", false, "  ")
     }
   }
 
@@ -36,8 +35,8 @@ export function MarkdownEditor({ value, onChange }: MarkdownEditorProps) {
       <textarea
         ref={textareaRef}
         className="flex-1 w-full resize-none rounded-lg border border-border bg-card p-4 font-mono text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-shadow"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        defaultValue={value}
+        onInput={handleInput}
         onKeyDown={handleKeyDown}
         placeholder="Write markdown here..."
         spellCheck={false}
