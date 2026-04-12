@@ -2,7 +2,7 @@ import { useState } from "react"
 import {
   Sun, Moon, Monitor, FileText, FileDown, FolderOpen, Palette, EllipsisVertical,
   Heart, Copyright, ExternalLink, Pencil, Eye, Clock, Trash2, ClipboardPaste,
-  Save, Home, Download, Paintbrush,
+  Save, Home, Download, Paintbrush, Layers,
 } from "lucide-react"
 import { Box, HStack, Text } from "@/components/primitives"
 import { Logo } from "@/components/Logo"
@@ -51,6 +51,8 @@ type HeaderProps = {
   onSave: () => void
   onSaveAs: () => void
   onGoHome: () => void
+  tabCount: number
+  onOpenMobileTabSwitcher: () => void
 }
 
 export function Header({
@@ -70,6 +72,8 @@ export function Header({
   onSave,
   onSaveAs,
   onGoHome,
+  tabCount,
+  onOpenMobileTabSwitcher,
 }: HeaderProps) {
   const { theme, setTheme } = useTheme()
   const { accentName, setAccent, accents } = useAccentColor()
@@ -127,6 +131,18 @@ export function Header({
             >
               {editing ? <Eye className="h-4.5 w-4.5" /> : <Pencil className="h-4.5 w-4.5" />}
               <span className="sr-only">{editing ? "Preview" : "Edit"}</span>
+            </Button>
+          )}
+          {tabCount >= 2 && (
+            <Button
+              variant="outline"
+              size="icon-sm"
+              onClick={onOpenMobileTabSwitcher}
+              className="sm:hidden"
+              title="Switch tabs"
+            >
+              <Layers className="h-3.5 w-3.5" />
+              <span className="sr-only">{tabCount} tabs</span>
             </Button>
           )}
         </HStack>
