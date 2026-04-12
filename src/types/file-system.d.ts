@@ -25,7 +25,17 @@ interface ShowSaveFilePickerOptions {
   types?: FilePickerTypeOption[]
 }
 
+interface LaunchParams {
+  readonly files: FileSystemFileHandle[]
+  readonly targetURL?: string
+}
+
+interface LaunchQueue {
+  setConsumer(consumer: (params: LaunchParams) => void): void
+}
+
 interface Window {
   showOpenFilePicker?: (options?: ShowOpenFilePickerOptions) => Promise<FileSystemFileHandle[]>
   showSaveFilePicker?: (options?: ShowSaveFilePickerOptions) => Promise<FileSystemFileHandle>
+  launchQueue?: LaunchQueue
 }

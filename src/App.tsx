@@ -424,6 +424,24 @@ function App() {
     }
   }, [activeTabId]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Handle files launched via OS file association (File Handling API)
+  useEffect(() => {
+    if (window.launchQueue) {
+      window.launchQueue.setConsumer(async (launchParams) => {
+        if (!launchParams.files?.length) return
+        for (const fileHandle of launchParams.files) {
+          try {
+            const file = await fileHandle.getFile()
+            const content = await file.text()
+            handleFileContent(content, file.name, fileHandle)
+          } catch {
+            toast.error(`Failed to open ${fileHandle.name}`)
+          }
+        }
+      })
+    }
+  }, [handleFileContent])
+
   // Keyboard shortcuts: Ctrl+S, Ctrl+T, Ctrl+W, Ctrl+Tab, Ctrl+Shift+Tab
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
