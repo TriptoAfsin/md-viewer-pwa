@@ -1,61 +1,12 @@
-import { useRegisterSW } from "virtual:pwa-register/react"
 import { RefreshCw, X } from "lucide-react"
-import { useRef, useCallback } from "react"
 
-const SW_CHECK_INTERVAL = 60 * 60 * 1000 // Check for updates every hour
-const MAX_DISMISSALS = 3 // After this many dismissals, force the update
+type UpdateBannerProps = {
+  needRefresh: boolean
+  onReload: () => void
+  onDismiss: () => void
+}
 
-export function UpdateBanner() {
-  const dismissCount = useRef(0)
-
-  const {
-    needRefresh: [needRefresh, setNeedRefresh],
-    updateServiceWorker,
-  } = useRegisterSW({
-    onRegisteredSW(swUrl, registration) {
-      if (!registration) return
-
-      // Periodically check for new SW versions
-      setInterval(async () => {
-        if (registration.installing || !navigator) return
-        if ("connection" in navigator && !navigator.onLine) return
-
-        try {
-          const resp = await fetch(swUrl, {
-            cache: "no-store",
-            headers: { "cache-control": "no-cache" },
-          })
-          if (resp?.status === 200) {
-            await registration.update()
-          }
-        } catch {
-          // Network error, skip this check
-        }
-      }, SW_CHECK_INTERVAL)
-    },
-    onRegisterError(error) {
-      console.error("[SW] Registration failed:", error)
-    },
-  })
-
-  const handleReload = useCallback(() => {
-    updateServiceWorker(true)
-    // Fallback: if updateServiceWorker doesn't trigger a reload within 2s, force it
-    setTimeout(() => {
-      window.location.reload()
-    }, 2000)
-  }, [updateServiceWorker])
-
-  const handleDismiss = useCallback(() => {
-    dismissCount.current++
-    if (dismissCount.current >= MAX_DISMISSALS) {
-      // User has dismissed too many times, force update to prevent getting stuck on stale version
-      handleReload()
-    } else {
-      setNeedRefresh(false)
-    }
-  }, [setNeedRefresh, handleReload])
-
+export function UpdateBanner({ needRefresh, onReload, onDismiss }: UpdateBannerProps) {
   if (!needRefresh) return null
 
   return (
@@ -70,13 +21,13 @@ export function UpdateBanner() {
         Update available
       </span>
       <button
-        onClick={handleReload}
+        onClick={onReload}
         className="rounded-md cursor-pointer bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors shrink-0"
       >
         Reload
       </button>
       <button
-        onClick={handleDismiss}
+        onClick={onDismiss}
         className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors shrink-0"
         aria-label="Dismiss"
       >

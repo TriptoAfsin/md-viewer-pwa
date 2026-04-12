@@ -2,7 +2,7 @@ import { useState } from "react"
 import {
   Sun, Moon, Monitor, FileText, FileDown, FolderOpen, Palette, EllipsisVertical,
   Heart, Copyright, ExternalLink, Pencil, Eye, Clock, Trash2, ClipboardPaste,
-  Save, Home, Download, Paintbrush,
+  Save, Home, Download, Paintbrush, RefreshCw,
 } from "lucide-react"
 import { Box, HStack, Text } from "@/components/primitives"
 import { Logo } from "@/components/Logo"
@@ -53,6 +53,7 @@ type HeaderProps = {
   onGoHome: () => void
   tabCount: number
   onOpenMobileTabSwitcher: () => void
+  onCheckForUpdate: () => void
 }
 
 export function Header({
@@ -74,6 +75,7 @@ export function Header({
   onGoHome,
   tabCount,
   onOpenMobileTabSwitcher,
+  onCheckForUpdate,
 }: HeaderProps) {
   const { theme, setTheme } = useTheme()
   const { accentName, setAccent, accents } = useAccentColor()
@@ -100,7 +102,7 @@ export function Header({
               className="active:scale-[0.97]"
               title="Home"
             >
-              <Home className="h-4.5 w-4.5" />
+              <Home className="h-5.5 w-5.5 sm:h-4.5 sm:w-4.5" />
               <span className="sr-only">Home</span>
             </Button>
           ) : (
@@ -113,7 +115,7 @@ export function Header({
             className="active:scale-[0.97]"
             title="Open file"
           >
-            <FolderOpen className="h-4.5 w-4.5" />
+            <FolderOpen className="h-5.5 w-5.5 sm:h-4.5 sm:w-4.5" />
             <span className="sr-only">Open file</span>
           </Button>
           {filename && (
@@ -124,7 +126,7 @@ export function Header({
               className="active:scale-[0.97]"
               title={editing ? "Preview" : "Edit"}
             >
-              {editing ? <Eye className="h-4.5 w-4.5" /> : <Pencil className="h-4.5 w-4.5" />}
+              {editing ? <Eye className="h-5.5 w-5.5 sm:h-4.5 sm:w-4.5" /> : <Pencil className="h-5.5 w-5.5 sm:h-4.5 sm:w-4.5" />}
               <span className="sr-only">{editing ? "Preview" : "Edit"}</span>
             </Button>
           )}
@@ -150,7 +152,7 @@ export function Header({
               className="active:scale-[0.97]"
               title={hasFileHandle ? "Save (Ctrl+S)" : "Save As (Ctrl+S)"}
             >
-              <Save className="h-4.5 w-4.5" />
+              <Save className="h-5.5 w-5.5 sm:h-4.5 sm:w-4.5" />
               <span className="sr-only">{hasFileHandle ? "Save" : "Save As"}</span>
             </Button>
           )}
@@ -161,9 +163,9 @@ export function Header({
             className="active:scale-[0.97]"
             title={`Theme: ${theme}`}
           >
-            {theme === "light" && <Sun className="h-4.5 w-4.5" />}
-            {theme === "dark" && <Moon className="h-4.5 w-4.5" />}
-            {theme === "system" && <Monitor className="h-4.5 w-4.5" />}
+            {theme === "light" && <Sun className="h-5.5 w-5.5 sm:h-4.5 sm:w-4.5" />}
+            {theme === "dark" && <Moon className="h-5.5 w-5.5 sm:h-4.5 sm:w-4.5" />}
+            {theme === "system" && <Monitor className="h-5.5 w-5.5 sm:h-4.5 sm:w-4.5" />}
             <span className="sr-only">Toggle theme ({theme})</span>
           </Button>
 
@@ -181,10 +183,10 @@ export function Header({
 
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="active:scale-[0.97]" />}>
-                <EllipsisVertical className="h-4.5 w-4.5" />
+                <EllipsisVertical className="h-5.5 w-5.5 sm:h-4.5 sm:w-4.5" />
                 <span className="sr-only">More options</span>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
+            <DropdownMenuContent align="end" className="w-56 sm:w-52 [&_[data-slot=dropdown-menu-item]]:py-2.5 [&_[data-slot=dropdown-menu-sub-trigger]]:py-2.5 sm:[&_[data-slot=dropdown-menu-item]]:py-1.5 sm:[&_[data-slot=dropdown-menu-sub-trigger]]:py-1.5">
               <DropdownMenuItem onClick={onOpenFile}>
                 <FolderOpen className="h-4 w-4 mr-2" />
                 Open File
@@ -285,6 +287,11 @@ export function Header({
                   ))}
                 </DropdownMenuSubContent>
               </DropdownMenuSub>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={onCheckForUpdate}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Check for Update
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => window.open("https://github.com/TriptoAfsin/md-viewer-pwa", "_blank")}

@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/sonner"
 import { UpdateBanner } from "@/components/UpdateBanner"
 import { toast } from "sonner"
 import { useRecentFiles } from "@/hooks/useRecentFiles"
+import { useServiceWorker } from "@/hooks/useServiceWorker"
 
 const SHIKI_THEME_KEY = "md-view-shiki-theme"
 const TABS_STORAGE_KEY = "md-view-tabs"
@@ -84,6 +85,7 @@ function App() {
   const [shikiTheme, setShikiTheme] = useState(getStoredShikiTheme)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { addRecentFile, openRecentFile, removeRecentFile, recentFiles } = useRecentFiles()
+  const { needRefresh, handleReload, handleDismiss, checkForUpdate } = useServiceWorker()
 
   const activeTab = tabs.find((t) => t.id === activeTabId) ?? null
 
@@ -517,6 +519,7 @@ function App() {
         onSaveAs={handleSaveAs}
         onGoHome={handleGoHome}
         onOpenMobileTabSwitcher={() => setMobileTabsOpen(true)}
+        onCheckForUpdate={checkForUpdate}
       />
 
       {tabs.length >= 1 && (
@@ -586,7 +589,7 @@ function App() {
         onChange={handleFileInput}
       />
 
-      <UpdateBanner />
+      <UpdateBanner needRefresh={needRefresh} onReload={handleReload} onDismiss={handleDismiss} />
       <Toaster position="bottom-center" />
     </Stack>
   )

@@ -14,7 +14,7 @@ import {
   ContextMenuSeparator,
 } from "@/components/ui/context-menu"
 import { useShiki } from "@/hooks/useShiki"
-import { useIsMobile } from "@/hooks/useIsMobile"
+
 import { toast } from "sonner"
 import type { Components } from "react-markdown"
 
@@ -37,8 +37,6 @@ export function MarkdownView({
 }: MarkdownViewProps) {
   const hasCodeBlocks = useMemo(() => /```[\s\S]*?```/.test(content), [content])
   const { highlight, ready } = useShiki(shikiTheme, hasCodeBlocks)
-  const isMobile = useIsMobile()
-
   const handleCopySelection = () => {
     const selection = window.getSelection()?.toString()
     if (selection) {
@@ -195,25 +193,6 @@ export function MarkdownView({
     [ready, highlight]
   )
 
-  const markdownContent = (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-24 w-full overflow-x-hidden animate-in fade-in duration-300">
-      {/* Mobile filename */}
-      {filename && (
-        <Text className="text-xs text-muted-foreground mb-6 sm:hidden truncate">
-          {filename}
-        </Text>
-      )}
-
-      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]} components={components}>
-        {content}
-      </ReactMarkdown>
-    </div>
-  )
-
-  if (isMobile) {
-    return markdownContent
-  }
-
   return (
     <ContextMenu>
       <ContextMenuTrigger className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-24 w-full overflow-x-hidden animate-in fade-in duration-300">
@@ -229,23 +208,23 @@ export function MarkdownView({
         </ReactMarkdown>
       </ContextMenuTrigger>
 
-      <ContextMenuContent className="w-52 animate-in fade-in slide-in-from-top-1 duration-150">
+      <ContextMenuContent className="w-56 sm:w-52 animate-in fade-in slide-in-from-top-1 duration-150 [&_[data-slot=context-menu-item]]:py-2.5 sm:[&_[data-slot=context-menu-item]]:py-1 [&_[data-slot=context-menu-item]]:text-base sm:[&_[data-slot=context-menu-item]]:text-sm">
         <ContextMenuItem onClick={handleCopySelection}>
-          <ClipboardCopy className="h-4 w-4 mr-2" />
+          <ClipboardCopy className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
           Copy Selection
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem onClick={onExportPdf}>
-          <FileDown className="h-4 w-4 mr-2" />
+          <FileDown className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
           Export as PDF
         </ContextMenuItem>
         <ContextMenuItem onClick={onExportText}>
-          <FileText className="h-4 w-4 mr-2" />
+          <FileText className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
           Export as Text
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem onClick={onOpenFile}>
-          <FolderOpen className="h-4 w-4 mr-2" />
+          <FolderOpen className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
           Open New File
         </ContextMenuItem>
       </ContextMenuContent>
