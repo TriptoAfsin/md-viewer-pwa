@@ -462,6 +462,15 @@ function App() {
         return
       }
 
+      // Ctrl+P — print
+      if (ctrl && e.key === "p") {
+        e.preventDefault()
+        if (activeTabRef.current?.markdown != null) {
+          window.print()
+        }
+        return
+      }
+
       // Ctrl+T — new tab
       if (ctrl && e.key === "t") {
         e.preventDefault()
