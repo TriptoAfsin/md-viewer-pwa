@@ -2,7 +2,7 @@ import { useMemo } from "react"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import rehypeSlug from "rehype-slug"
-import { FolderOpen, FileDown, FileText, ClipboardCopy } from "lucide-react"
+import { FolderOpen, ClipboardCopy } from "lucide-react"
 import { Box, Text, Title } from "@/components/primitives"
 import { CodeBlock } from "@/components/CodeBlock"
 import { ShikiCodeBlock } from "@/components/ShikiCodeBlock"
@@ -31,9 +31,7 @@ export function MarkdownView({
   content,
   filename,
   shikiTheme,
-  onOpenFile,
-  onExportPdf,
-  onExportText,
+  onOpenFile
 }: MarkdownViewProps) {
   const hasCodeBlocks = useMemo(() => /```[\s\S]*?```/.test(content), [content])
   const { highlight, ready } = useShiki(shikiTheme, hasCodeBlocks)
@@ -212,15 +210,6 @@ export function MarkdownView({
         <ContextMenuItem onClick={handleCopySelection}>
           <ClipboardCopy className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
           Copy Selection
-        </ContextMenuItem>
-        <ContextMenuSeparator />
-        <ContextMenuItem onClick={onExportPdf}>
-          <FileDown className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
-          Export as PDF
-        </ContextMenuItem>
-        <ContextMenuItem onClick={onExportText}>
-          <FileText className="h-5 w-5 sm:h-4 sm:w-4 mr-2" />
-          Export as Text
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem onClick={onOpenFile}>
