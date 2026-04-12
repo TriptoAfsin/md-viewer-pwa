@@ -81,6 +81,18 @@ function App() {
 
   const handleFileContent = useCallback(
     (content: string, name: string, handle?: FileSystemFileHandle) => {
+      const current = activeTabRef.current
+      // Reuse the active tab if it's empty (new tab)
+      if (current && current.markdown == null) {
+        updateTab(current.id, (t) => ({
+          ...t,
+          markdown: content,
+          filename: name,
+          fileHandle: handle ?? null,
+        }))
+        addRecentFile(name, content.length, handle)
+        return
+      }
       if (tabsRef.current.length >= MAX_TABS) {
         toast.error("Maximum 10 tabs open. Close a tab first.")
         return
@@ -90,7 +102,7 @@ function App() {
       setActiveTabId(newTab.id)
       addRecentFile(name, content.length, handle)
     },
-    [addRecentFile]
+    [addRecentFile, updateTab]
   )
 
   const handleOpenFile = useCallback(async () => {
@@ -364,8 +376,10 @@ function App() {
       toast.error("Maximum 10 tabs open. Close a tab first.")
       return
     }
-    handleOpenFile()
-  }, [tabs.length, handleOpenFile])
+    const newTab = createTab(null, null)
+    setTabs((prev) => [...prev, newTab])
+    setActiveTabId(newTab.id)
+  }, [tabs.length])
 
   // Restore scroll position when switching tabs
   useEffect(() => {
@@ -453,7 +467,7 @@ function App() {
         onOpenMobileTabSwitcher={() => setMobileTabsOpen(true)}
       />
 
-      {tabs.length >= 2 && (
+      {tabs.length >= 1 && (
         <div className="hidden sm:block">
           <TabBar
             tabs={tabs}

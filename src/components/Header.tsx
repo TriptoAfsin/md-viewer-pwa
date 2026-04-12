@@ -2,7 +2,7 @@ import { useState } from "react"
 import {
   Sun, Moon, Monitor, FileText, FileDown, FolderOpen, Palette, EllipsisVertical,
   Heart, Copyright, ExternalLink, Pencil, Eye, Clock, Trash2, ClipboardPaste,
-  Save, Home, Download, Paintbrush, Layers,
+  Save, Home, Download, Paintbrush,
 } from "lucide-react"
 import { Box, HStack, Text } from "@/components/primitives"
 import { Logo } from "@/components/Logo"
@@ -133,18 +133,6 @@ export function Header({
               <span className="sr-only">{editing ? "Preview" : "Edit"}</span>
             </Button>
           )}
-          {tabCount >= 2 && (
-            <Button
-              variant="outline"
-              size="icon-sm"
-              onClick={onOpenMobileTabSwitcher}
-              className="sm:hidden"
-              title="Switch tabs"
-            >
-              <Layers className="h-3.5 w-3.5" />
-              <span className="sr-only">{tabCount} tabs</span>
-            </Button>
-          )}
         </HStack>
 
         {/* Center: filename */}
@@ -183,6 +171,18 @@ export function Header({
             {theme === "system" && <Monitor className="h-4.5 w-4.5" />}
             <span className="sr-only">Toggle theme ({theme})</span>
           </Button>
+
+          {tabCount >= 1 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onOpenMobileTabSwitcher}
+              className="sm:hidden h-7 min-w-7 px-1.5 text-xs font-medium"
+              title="Switch tabs"
+            >
+              {tabCount}
+            </Button>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="active:scale-[0.97]" />}>

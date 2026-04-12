@@ -30,8 +30,8 @@ export function MobileTabSwitcher({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
-        side="bottom"
-        className="h-[100dvh] flex flex-col p-0"
+        side="right"
+        className="h-full w-[85vw] max-w-sm flex flex-col p-0"
         showCloseButton={false}
       >
         {/* Header */}
@@ -58,64 +58,46 @@ export function MobileTabSwitcher({
           </HStack>
         </HStack>
 
-        {/* Card grid */}
-        <Box className="flex-1 overflow-y-auto p-4">
-          <Box className="grid grid-cols-2 gap-3">
-            {tabs.map((tab) => {
-              const isActive = tab.id === activeTabId
-              const preview = tab.markdown?.slice(0, 120) || ""
-              return (
-                <Box
-                  key={tab.id}
-                  as="button"
-                  onClick={() => onSwitchTab(tab.id)}
+        {/* Tab list */}
+        <Box className="flex-1 overflow-y-auto p-3 flex flex-col gap-1.5">
+          {tabs.map((tab) => {
+            const isActive = tab.id === activeTabId
+            return (
+              <button
+                key={tab.id}
+                onClick={() => onSwitchTab(tab.id)}
+                className={[
+                  "flex items-center w-full px-3 py-2.5 rounded-lg border text-left cursor-pointer transition-colors",
+                  isActive
+                    ? "border-primary bg-primary/10 text-foreground"
+                    : "border-border bg-card text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+                ].join(" ")}
+              >
+                {tab.dirty && (
+                  <Box className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mr-2" />
+                )}
+                <Text
+                  as="span"
                   className={[
-                    "relative rounded-xl border-2 bg-card p-3 text-left cursor-pointer transition-colors aspect-[3/4] flex flex-col overflow-hidden",
-                    isActive
-                      ? "border-primary"
-                      : "border-border hover:border-muted-foreground/30",
+                    "text-sm truncate flex-1",
+                    isActive ? "font-medium" : "",
                   ].join(" ")}
                 >
-                  {/* Close button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onCloseTab(tab.id)
-                    }}
-                    className="absolute top-2 right-2 p-1 rounded-full cursor-pointer bg-muted/80 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                    title="Close tab"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-
-                  {/* Tab name */}
-                  <HStack gap="gap-1" className="mb-2 pr-6">
-                    {tab.dirty && (
-                      <Box className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                    )}
-                    <Text
-                      as="span"
-                      className="text-sm font-medium text-foreground truncate"
-                    >
-                      {tab.filename || "Untitled"}
-                    </Text>
-                  </HStack>
-
-                  {/* Preview snippet */}
-                  <Text className="text-xs text-muted-foreground line-clamp-6 flex-1">
-                    {preview || "Empty"}
-                  </Text>
-
-                  {/* Edit mode indicator */}
-                  {tab.editing && (
-                    <Text className="text-[10px] text-primary font-medium mt-1">
-                      Editing
-                    </Text>
-                  )}
-                </Box>
-              )
-            })}
-          </Box>
+                  {tab.filename || "Untitled"}
+                </Text>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onCloseTab(tab.id)
+                  }}
+                  className="p-1 rounded cursor-pointer shrink-0 ml-2 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  title="Close tab"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </button>
+            )
+          })}
         </Box>
       </SheetContent>
     </Sheet>
