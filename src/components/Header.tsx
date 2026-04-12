@@ -104,12 +104,7 @@ export function Header({
               <span className="sr-only">Home</span>
             </Button>
           ) : (
-            <>
-              <Logo size={24} className="text-primary" />
-              <Text as="span" className="font-semibold text-sm text-foreground mr-1">
-                MD View
-              </Text>
-            </>
+            <Logo size={24} className="text-primary" />
           )}
           <Button
             variant="ghost"
