@@ -51,6 +51,8 @@ type HeaderProps = {
   onSave: () => void
   onSaveAs: () => void
   onGoHome: () => void
+  tabCount: number
+  onOpenMobileTabSwitcher: () => void
 }
 
 export function Header({
@@ -70,6 +72,8 @@ export function Header({
   onSave,
   onSaveAs,
   onGoHome,
+  tabCount,
+  onOpenMobileTabSwitcher,
 }: HeaderProps) {
   const { theme, setTheme } = useTheme()
   const { accentName, setAccent, accents } = useAccentColor()
@@ -100,12 +104,7 @@ export function Header({
               <span className="sr-only">Home</span>
             </Button>
           ) : (
-            <>
-              <Logo size={24} className="text-primary" />
-              <Text as="span" className="font-semibold text-sm text-foreground mr-1">
-                MD View
-              </Text>
-            </>
+            <Logo size={24} className="text-primary" />
           )}
           <Button
             variant="ghost"
@@ -167,6 +166,18 @@ export function Header({
             {theme === "system" && <Monitor className="h-4.5 w-4.5" />}
             <span className="sr-only">Toggle theme ({theme})</span>
           </Button>
+
+          {tabCount >= 1 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onOpenMobileTabSwitcher}
+              className="sm:hidden h-7 min-w-7 px-1.5 text-xs font-medium"
+              title="Switch tabs"
+            >
+              {tabCount}
+            </Button>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="active:scale-[0.97]" />}>
