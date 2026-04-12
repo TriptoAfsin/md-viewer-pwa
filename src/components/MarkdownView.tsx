@@ -14,6 +14,7 @@ import {
   ContextMenuSeparator,
 } from "@/components/ui/context-menu"
 import { useShiki } from "@/hooks/useShiki"
+import { useIsMobile } from "@/hooks/useIsMobile"
 import { toast } from "sonner"
 import type { Components } from "react-markdown"
 
@@ -36,6 +37,7 @@ export function MarkdownView({
 }: MarkdownViewProps) {
   const hasCodeBlocks = useMemo(() => /```[\s\S]*?```/.test(content), [content])
   const { highlight, ready } = useShiki(shikiTheme, hasCodeBlocks)
+  const isMobile = useIsMobile()
 
   const handleCopySelection = () => {
     const selection = window.getSelection()?.toString()
@@ -192,19 +194,38 @@ export function MarkdownView({
     [ready, highlight]
   )
 
+  const markdownContent = (
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-24 w-full overflow-x-hidden animate-in fade-in duration-300">
+      {/* Mobile filename */}
+      {filename && (
+        <Text className="text-xs text-muted-foreground mb-6 sm:hidden truncate">
+          {filename}
+        </Text>
+      )}
+
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]} components={components}>
+        {content}
+      </ReactMarkdown>
+    </div>
+  )
+
+  if (isMobile) {
+    return markdownContent
+  }
+
   return (
     <ContextMenu>
       <ContextMenuTrigger className="max-w-3xl mx-auto px-4 sm:px-6 py-8 pb-24 w-full overflow-x-hidden animate-in fade-in duration-300">
-          {/* Mobile filename */}
-          {filename && (
-            <Text className="text-xs text-muted-foreground mb-6 sm:hidden truncate">
-              {filename}
-            </Text>
-          )}
+        {/* Mobile filename */}
+        {filename && (
+          <Text className="text-xs text-muted-foreground mb-6 sm:hidden truncate">
+            {filename}
+          </Text>
+        )}
 
-          <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]} components={components}>
-            {content}
-          </ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]} components={components}>
+          {content}
+        </ReactMarkdown>
       </ContextMenuTrigger>
 
       <ContextMenuContent className="w-52 animate-in fade-in slide-in-from-top-1 duration-150">
