@@ -4,6 +4,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Base UI animation variants — these map to the [data-starting-style] and
+   [data-ending-style] attributes that Base UI sets on popups during transitions. */
+@custom-variant data-starting-style (&[data-starting-style]);
+@custom-variant data-ending-style (&[data-ending-style]);
+
 @theme inline {
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-heading: var(--font-sans);
@@ -108,13 +113,16 @@
   display: none;
 }
 
-/* Smooth theme transitions */
-*,
-*::before,
-*::after {
-  transition-property: color, background-color, border-color;
-  transition-duration: 150ms;
-  transition-timing-function: ease;
+/* Smooth theme transitions — only target theme-sensitive properties,
+   and use a lower-specificity selector so Tailwind utilities can override. */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    transition-property: color, background-color, border-color;
+    transition-duration: 150ms;
+    transition-timing-function: ease;
+  }
 }
 
 /* Respect reduced motion */
