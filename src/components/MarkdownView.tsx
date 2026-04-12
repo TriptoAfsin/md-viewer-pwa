@@ -167,9 +167,10 @@ export function MarkdownView({
         const match = /language-(\w+)/.exec(className || "")
         const lang = match?.[1]
         const codeString = String(children).replace(/\n$/, "")
+        const isBlock = lang || className || codeString.includes("\n")
 
         // Inline code
-        if (!lang && !className) {
+        if (!isBlock) {
           return (
             <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-sm text-foreground break-all">
               {children}
