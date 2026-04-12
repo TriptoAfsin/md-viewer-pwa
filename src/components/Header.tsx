@@ -2,7 +2,7 @@ import { useState } from "react"
 import {
   Sun, Moon, Monitor, FileText, FileDown, FolderOpen, Palette, EllipsisVertical,
   Heart, Copyright, ExternalLink, Pencil, Eye, Clock, Trash2, ClipboardPaste,
-  Save, Home, Download,
+  Save, Home, Download, Paintbrush,
 } from "lucide-react"
 import { Box, HStack, Text } from "@/components/primitives"
 import { Logo } from "@/components/Logo"
@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTheme } from "@/hooks/useTheme"
+import { useAccentColor } from "@/hooks/useAccentColor"
 import type { RecentFile } from "@/hooks/useRecentFiles"
 
 const SHIKI_THEMES = [
@@ -71,6 +72,7 @@ export function Header({
   onGoHome,
 }: HeaderProps) {
   const { theme, setTheme } = useTheme()
+  const { accentName, setAccent, accents } = useAccentColor()
 
   const cycleTheme = () => {
     if (theme === "light") setTheme("dark")
@@ -139,8 +141,20 @@ export function Header({
           </Text>
         )}
 
-        {/* Right: theme toggle + 3-dot menu */}
+        {/* Right: save + theme toggle + 3-dot menu */}
         <HStack gap="gap-1">
+          {editing && filename && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={hasFileHandle ? onSave : onSaveAs}
+              className="active:scale-[0.97]"
+              title={hasFileHandle ? "Save (Ctrl+S)" : "Save As (Ctrl+S)"}
+            >
+              <Save className="h-4.5 w-4.5" />
+              <span className="sr-only">{hasFileHandle ? "Save" : "Save As"}</span>
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -228,6 +242,34 @@ export function Header({
                       >
                         {t.label}
                       </Text>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <Paintbrush className="h-4 w-4 mr-2" />
+                  Accent Color
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent className="w-40">
+                  {accents.map((c) => (
+                    <DropdownMenuItem
+                      key={c.name}
+                      onClick={() => setAccent(c.name)}
+                    >
+                      <Box
+                        className="w-3.5 h-3.5 rounded-full mr-2 shrink-0 border border-border"
+                        style={{ backgroundColor: c.light }}
+                      />
+                      <Text
+                        as="span"
+                        className={accentName === c.name ? "font-medium" : ""}
+                      >
+                        {c.name}
+                      </Text>
+                      {accentName === c.name && (
+                        <Box className="w-1.5 h-1.5 rounded-full bg-primary ml-auto shrink-0" />
+                      )}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuSubContent>

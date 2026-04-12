@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, type RefObject } from "react"
+import { useState, useCallback, useRef, useEffect, type RefObject } from "react"
 import { Box, Stack } from "@/components/primitives"
 import { Header } from "@/components/Header"
 import { DropZone } from "@/components/DropZone"
@@ -244,6 +244,23 @@ function App() {
     setFileHandle(null)
     setEditing(false)
   }, [])
+
+  // Ctrl+S / Cmd+S to save in edit mode
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault()
+        if (!editing || !markdownRef.current) return
+        if (fileHandle) {
+          handleSave()
+        } else {
+          handleSaveAs()
+        }
+      }
+    }
+    window.addEventListener("keydown", handler)
+    return () => window.removeEventListener("keydown", handler)
+  }, [editing, fileHandle, handleSave, handleSaveAs])
 
   return (
     <Stack gap="gap-0" className="min-h-svh">

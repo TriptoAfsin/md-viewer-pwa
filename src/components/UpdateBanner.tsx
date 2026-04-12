@@ -15,13 +15,13 @@ export function UpdateBanner() {
       <span className="text-sm text-foreground">A new version is available.</span>
       <button
         onClick={() => updateServiceWorker()}
-        className="rounded-md bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+        className="rounded-md cursor-pointer bg-primary px-3 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
       >
         Reload
       </button>
       <button
         onClick={() => setNeedRefresh(false)}
-        className="text-muted-foreground hover:text-foreground transition-colors"
+        className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
         aria-label="Dismiss"
       >
         <X className="h-4 w-4" />
