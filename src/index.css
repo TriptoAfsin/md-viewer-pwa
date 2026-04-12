@@ -116,9 +116,9 @@
 /* Smooth theme transitions — only target theme-sensitive properties,
    and use a lower-specificity selector so Tailwind utilities can override. */
 @layer base {
-  *,
-  *::before,
-  *::after {
+  *:not([data-slot="sheet-content"]):not([data-slot="sheet-overlay"]),
+  *:not([data-slot="sheet-content"]):not([data-slot="sheet-overlay"])::before,
+  *:not([data-slot="sheet-content"]):not([data-slot="sheet-overlay"])::after {
     transition-property: color, background-color, border-color;
     transition-duration: 150ms;
     transition-timing-function: ease;
