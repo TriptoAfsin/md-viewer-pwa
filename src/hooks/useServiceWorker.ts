@@ -6,7 +6,7 @@ const SW_CHECK_INTERVAL = 60 * 60 * 1000 // Check for updates every hour
 
 export function useServiceWorker() {
   const dismissCount = useRef(0)
-  const registrationRef = useRef<ServiceWorkerRegistration | undefined>()
+  const registrationRef = useRef<ServiceWorkerRegistration | undefined>(undefined)
 
   const {
     needRefresh: [needRefresh, setNeedRefresh],

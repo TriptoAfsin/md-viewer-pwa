@@ -21,18 +21,27 @@
 
 ---
 
+<p align="center">
+  <img src="public/mockup-md-viewer.png" width="360" alt="MD View screenshot" />
+</p>
+
+---
+
 ## Features
 
 - **System file picker** — open any `.md` file from your device
 - **Drag & drop** — drop files directly onto the page
 - **Paste markdown** — paste raw markdown text to preview instantly
+- **Tab bar** — open multiple files in tabs, switch between them, and restore tabs on reload
 - **Beautiful rendering** — clean, typographic Markdown display with GFM support
 - **Code syntax highlighting** — VS Code-quality highlighting powered by Shiki with 10 selectable themes
 - **Light & dark mode** — respects system preference with manual toggle
+- **Accent colors** — choose from multiple accent color themes
 - **Export to PDF** — text-based, selectable PDF output via jsPDF
 - **Export to plain text** — stripped markdown formatting
-- **Right-click context menu** — copy, export, and open files from the context menu
-- **Recent files** — quickly see your previously opened files
+- **Context menu** — copy, export, and open files from right-click or long-press
+- **Recent files** — quickly reopen previously viewed files
+- **File handling** — register as default app for `.md` files on supported platforms
 - **Mobile-first** — optimized for phones and tablets, works great on desktop too
 - **Offline-ready** — full PWA with service worker, install it and use it anywhere
 - **Privacy-first** — files never leave your device, zero server processing
