@@ -1,334 +1,130 @@
-import type { jsPDF as JsPDFType } from "jspdf"
+import { unified } from "unified"
+import remarkParse from "remark-parse"
+import remarkGfm from "remark-gfm"
+import remarkRehype from "remark-rehype"
+import rehypeStringify from "rehype-stringify"
 
-// Strip markdown inline formatting
-const INLINE_RE_BOLD = /\*\*(.+?)\*\*/g
-const INLINE_RE_ITALIC = /\*(.+?)\*/g
-const INLINE_RE_BOLD_ALT = /__(.+?)__/g
-const INLINE_RE_ITALIC_ALT = /_(.+?)_/g
-const INLINE_RE_STRIKE = /~~(.+?)~~/g
-const INLINE_RE_CODE = /`(.+?)`/g
-const INLINE_RE_LINK = /\[(.+?)\]\(.+?\)/g
-const INLINE_RE_IMAGE = /!\[.*?\]\(.+?\)/g
-
-// Replace emoji/unsupported chars with a placeholder to avoid jsPDF errors
-const EMOJI_RE = /[\u{1F000}-\u{1FFFF}]|[\u{2600}-\u{27BF}]|[\u{FE00}-\u{FE0F}]|[\u{200D}]/gu
-
-function stripInline(text: string): string {
-  return text
-    .replace(INLINE_RE_IMAGE, "")
-    .replace(INLINE_RE_BOLD, "$1")
-    .replace(INLINE_RE_ITALIC, "$1")
-    .replace(INLINE_RE_BOLD_ALT, "$1")
-    .replace(INLINE_RE_ITALIC_ALT, "$1")
-    .replace(INLINE_RE_STRIKE, "$1")
-    .replace(INLINE_RE_CODE, "$1")
-    .replace(INLINE_RE_LINK, "$1")
+async function markdownToHtml(markdown: string): Promise<string> {
+  const result = await unified()
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkRehype)
+    .use(rehypeStringify)
+    .process(markdown)
+  return String(result)
 }
 
-function sanitizeText(text: string): string {
-  // Replace emojis with a square placeholder since standard PDF fonts lack them
-  return text.replace(EMOJI_RE, "\u25A1")
-}
+function buildStyledContainer(html: string): HTMLDivElement {
+  const container = document.createElement("div")
+  container.style.cssText = [
+    "position: fixed",
+    "top: 0",
+    "left: -9999px",
+    "width: 794px",       // A4 at 96dpi
+    "padding: 48px",
+    "background: #ffffff",
+    "color: #1c1917",
+    "font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+    "font-size: 14px",
+    "line-height: 1.7",
+    "box-sizing: border-box",
+  ].join(";")
 
-function ensureSpace(doc: JsPDFType, y: number, needed: number, margin: number): number {
-  const pageHeight = doc.internal.pageSize.getHeight()
-  if (y + needed > pageHeight - margin) {
-    doc.addPage()
-    return margin
-  }
-  return y
-}
+  container.innerHTML = `<style>
+    .pdf-content h1 { font-size: 28px; font-weight: 700; margin: 24px 0 12px; padding-bottom: 8px; border-bottom: 1px solid #e7e5e4; }
+    .pdf-content h2 { font-size: 22px; font-weight: 700; margin: 20px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #e7e5e4; }
+    .pdf-content h3 { font-size: 18px; font-weight: 600; margin: 16px 0 8px; }
+    .pdf-content h4 { font-size: 16px; font-weight: 600; margin: 12px 0 6px; }
+    .pdf-content h5 { font-size: 14px; font-weight: 600; margin: 10px 0 4px; }
+    .pdf-content h6 { font-size: 13px; font-weight: 600; margin: 10px 0 4px; color: #78716c; }
+    .pdf-content p { margin: 10px 0; }
+    .pdf-content a { color: #7c3aed; text-decoration: underline; }
+    .pdf-content blockquote { margin: 12px 0; padding-left: 16px; border-left: 4px solid #7c3aed80; color: #78716c; font-style: italic; }
+    .pdf-content ul { margin: 10px 0; padding-left: 24px; list-style: disc; }
+    .pdf-content ol { margin: 10px 0; padding-left: 24px; list-style: decimal; }
+    .pdf-content li { margin: 3px 0; }
+    .pdf-content hr { border: none; border-top: 1px solid #e7e5e4; margin: 20px 0; }
+    .pdf-content img { max-width: 100%; border-radius: 8px; margin: 12px 0; }
+    .pdf-content code { background: #f5f5f4; padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 13px; }
+    .pdf-content pre { background: #f5f5f4; border: 1px solid #e7e5e4; border-radius: 8px; padding: 16px; overflow-x: auto; margin: 12px 0; }
+    .pdf-content pre code { background: none; padding: 0; font-size: 12px; }
+    .pdf-content table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+    .pdf-content th { text-align: left; font-weight: 600; padding: 8px; border-bottom: 2px solid #e7e5e4; }
+    .pdf-content td { padding: 8px; border-bottom: 1px solid #e7e5e4; }
+    .pdf-content tr:nth-child(even) { background: #fafaf9; }
+    .pdf-content del { text-decoration: line-through; color: #a8a29e; }
+    .pdf-content input[type="checkbox"] { margin-right: 6px; }
+  </style><div class="pdf-content">${html}</div>`
 
-type ParsedBlock =
-  | { type: "h1" | "h2" | "h3"; text: string }
-  | { type: "paragraph"; text: string }
-  | { type: "bullet"; text: string; indent: number }
-  | { type: "ordered"; text: string; num: string; indent: number }
-  | { type: "code"; lines: string[]; lang: string }
-  | { type: "blockquote"; text: string }
-  | { type: "table"; headers: string[]; rows: string[][] }
-  | { type: "hr" }
-  | { type: "blank" }
-
-function parseMarkdown(markdown: string): ParsedBlock[] {
-  const blocks: ParsedBlock[] = []
-  const lines = markdown.split("\n")
-  let i = 0
-
-  while (i < lines.length) {
-    const line = lines[i]
-
-    // Code fence
-    if (line.startsWith("```")) {
-      const lang = line.slice(3).trim()
-      const codeLines: string[] = []
-      i++
-      while (i < lines.length && !lines[i].startsWith("```")) {
-        codeLines.push(lines[i])
-        i++
-      }
-      blocks.push({ type: "code", lines: codeLines, lang })
-      i++ // skip closing ```
-      continue
-    }
-
-    // Table: detect header row with pipes
-    if (line.includes("|") && i + 1 < lines.length && /^\s*\|?\s*[-:]+/.test(lines[i + 1])) {
-      const parseRow = (row: string) =>
-        row.split("|").map((c) => c.trim()).filter(Boolean)
-      const headers = parseRow(line)
-      i += 2 // skip header + separator
-      const rows: string[][] = []
-      while (i < lines.length && lines[i].includes("|")) {
-        rows.push(parseRow(lines[i]))
-        i++
-      }
-      blocks.push({ type: "table", headers, rows })
-      continue
-    }
-
-    // Headings
-    if (line.startsWith("# ")) {
-      blocks.push({ type: "h1", text: line.slice(2) })
-    } else if (line.startsWith("## ")) {
-      blocks.push({ type: "h2", text: line.slice(3) })
-    } else if (line.startsWith("### ") || line.startsWith("#### ") || line.startsWith("##### ") || line.startsWith("###### ")) {
-      const text = line.replace(/^#{1,6}\s+/, "")
-      blocks.push({ type: "h3", text })
-    }
-    // Horizontal rule
-    else if (/^(\*{3,}|-{3,}|_{3,})\s*$/.test(line)) {
-      blocks.push({ type: "hr" })
-    }
-    // Blockquote
-    else if (line.startsWith("> ")) {
-      blocks.push({ type: "blockquote", text: line.slice(2) })
-    }
-    // Unordered list
-    else if (/^\s*[-*+]\s+/.test(line)) {
-      const indent = line.search(/\S/)
-      const text = line.replace(/^\s*[-*+]\s+/, "")
-      blocks.push({ type: "bullet", text, indent: Math.floor(indent / 2) })
-    }
-    // Ordered list
-    else if (/^\s*\d+\.\s+/.test(line)) {
-      const indent = line.search(/\S/)
-      const num = line.match(/^\s*(\d+)\./)?.[1] || "1"
-      const text = line.replace(/^\s*\d+\.\s+/, "")
-      blocks.push({ type: "ordered", text, num, indent: Math.floor(indent / 2) })
-    }
-    // Blank line
-    else if (line.trim() === "") {
-      blocks.push({ type: "blank" })
-    }
-    // Paragraph
-    else {
-      blocks.push({ type: "paragraph", text: line })
-    }
-
-    i++
-  }
-
-  return blocks
+  document.body.appendChild(container)
+  return container
 }
 
 export async function exportToPdf(markdown: string, filename: string) {
-  const [{ jsPDF }, autoTableModule] = await Promise.all([
+  const [{ jsPDF }, { default: html2canvas }] = await Promise.all([
     import("jspdf"),
-    import("jspdf-autotable"),
+    import("html2canvas"),
   ])
 
-  const autoTable = autoTableModule.default
+  const html = await markdownToHtml(markdown)
+  const container = buildStyledContainer(html)
 
-  const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
-  const pageWidth = doc.internal.pageSize.getWidth()
-  const margin = 15
-  const maxWidth = pageWidth - margin * 2
-  let y = margin
+  // Let the browser layout and load any images
+  await new Promise((r) => setTimeout(r, 100))
 
-  const blocks = parseMarkdown(markdown)
+  try {
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+    })
 
-  for (const block of blocks) {
-    switch (block.type) {
-      case "h1": {
-        y = ensureSpace(doc, y, 12, margin)
-        doc.setFontSize(22)
-        doc.setFont("helvetica", "bold")
-        const wrapped = doc.splitTextToSize(sanitizeText(stripInline(block.text)), maxWidth)
-        doc.text(wrapped, margin, y)
-        y += wrapped.length * 9 + 2
-        // Underline
-        doc.setDrawColor(200, 200, 200)
-        doc.setLineWidth(0.3)
-        doc.line(margin, y, pageWidth - margin, y)
-        y += 4
-        break
-      }
+    const imgWidth = canvas.width
+    const imgHeight = canvas.height
 
-      case "h2": {
-        y = ensureSpace(doc, y, 10, margin)
-        doc.setFontSize(17)
-        doc.setFont("helvetica", "bold")
-        const wrapped = doc.splitTextToSize(sanitizeText(stripInline(block.text)), maxWidth)
-        doc.text(wrapped, margin, y)
-        y += wrapped.length * 7.5 + 2
-        doc.setDrawColor(220, 220, 220)
-        doc.setLineWidth(0.2)
-        doc.line(margin, y, pageWidth - margin, y)
-        y += 3
-        break
-      }
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const margin = 10
+    const contentWidth = pageWidth - margin * 2
+    const contentHeight = (imgHeight * contentWidth) / imgWidth
 
-      case "h3": {
-        y = ensureSpace(doc, y, 8, margin)
-        doc.setFontSize(13)
-        doc.setFont("helvetica", "bold")
-        const wrapped = doc.splitTextToSize(sanitizeText(stripInline(block.text)), maxWidth)
-        doc.text(wrapped, margin, y)
-        y += wrapped.length * 6 + 2
-        break
-      }
+    // Split into pages
+    const pageContentHeight = pageHeight - margin * 2
+    let remainingHeight = contentHeight
+    let srcY = 0
 
-      case "paragraph": {
-        doc.setFontSize(10.5)
-        doc.setFont("helvetica", "normal")
-        const text = sanitizeText(stripInline(block.text))
-        const wrapped = doc.splitTextToSize(text, maxWidth)
-        y = ensureSpace(doc, y, wrapped.length * 4.5, margin)
-        doc.text(wrapped, margin, y)
-        y += wrapped.length * 4.5 + 1.5
-        break
-      }
+    let firstPage = true
+    while (remainingHeight > 0) {
+      if (!firstPage) doc.addPage()
+      firstPage = false
 
-      case "bullet": {
-        doc.setFontSize(10.5)
-        doc.setFont("helvetica", "normal")
-        const indent = margin + block.indent * 4
-        const bulletWidth = maxWidth - (indent - margin) - 4
-        const text = sanitizeText(stripInline(block.text))
-        const wrapped = doc.splitTextToSize(text, bulletWidth)
-        y = ensureSpace(doc, y, wrapped.length * 4.5, margin)
-        doc.text("\u2022", indent, y)
-        doc.text(wrapped, indent + 4, y)
-        y += wrapped.length * 4.5 + 1
-        break
-      }
+      const sliceHeight = Math.min(remainingHeight, pageContentHeight)
+      // Source rectangle in the original image pixel space
+      const srcSliceHeight = (sliceHeight / contentHeight) * imgHeight
 
-      case "ordered": {
-        doc.setFontSize(10.5)
-        doc.setFont("helvetica", "normal")
-        const indent = margin + block.indent * 4
-        const numWidth = maxWidth - (indent - margin) - 6
-        const text = sanitizeText(stripInline(block.text))
-        const wrapped = doc.splitTextToSize(text, numWidth)
-        y = ensureSpace(doc, y, wrapped.length * 4.5, margin)
-        doc.text(`${block.num}.`, indent, y)
-        doc.text(wrapped, indent + 6, y)
-        y += wrapped.length * 4.5 + 1
-        break
-      }
+      // Create a slice canvas for this page
+      const sliceCanvas = document.createElement("canvas")
+      sliceCanvas.width = imgWidth
+      sliceCanvas.height = Math.ceil(srcSliceHeight)
+      const ctx = sliceCanvas.getContext("2d")!
+      ctx.drawImage(
+        canvas,
+        0, Math.round(srcY), imgWidth, Math.ceil(srcSliceHeight),
+        0, 0, imgWidth, Math.ceil(srcSliceHeight),
+      )
 
-      case "blockquote": {
-        y = ensureSpace(doc, y, 8, margin)
-        // Violet left bar
-        doc.setFillColor(124, 58, 237)
-        doc.rect(margin, y - 3, 1.2, 6, "F")
-        doc.setFontSize(10.5)
-        doc.setFont("helvetica", "italic")
-        doc.setTextColor(120, 120, 120)
-        const text = sanitizeText(stripInline(block.text))
-        const wrapped = doc.splitTextToSize(text, maxWidth - 6)
-        doc.text(wrapped, margin + 5, y)
-        doc.setTextColor(0, 0, 0)
-        y += wrapped.length * 4.5 + 2
-        break
-      }
+      const sliceData = sliceCanvas.toDataURL("image/jpeg", 0.95)
+      doc.addImage(sliceData, "JPEG", margin, margin, contentWidth, sliceHeight)
 
-      case "code": {
-        const codeText = block.lines.join("\n")
-        const codeSanitized = sanitizeText(codeText)
-        doc.setFontSize(9)
-        doc.setFont("courier", "normal")
-        const codeWrapped = doc.splitTextToSize(codeSanitized, maxWidth - 8)
-        const codeHeight = codeWrapped.length * 4 + 6
-
-        y = ensureSpace(doc, y, codeHeight, margin)
-
-        // Gray background
-        doc.setFillColor(245, 245, 244)
-        doc.setDrawColor(220, 220, 220)
-        doc.roundedRect(margin, y - 3, maxWidth, codeHeight, 1.5, 1.5, "FD")
-
-        // Language label
-        if (block.lang) {
-          doc.setFontSize(7)
-          doc.setFont("helvetica", "normal")
-          doc.setTextColor(150, 150, 150)
-          doc.text(block.lang, margin + 3, y)
-          doc.setTextColor(0, 0, 0)
-          y += 3
-        }
-
-        // Code text
-        doc.setFontSize(9)
-        doc.setFont("courier", "normal")
-        doc.setTextColor(40, 40, 40)
-        doc.text(codeWrapped, margin + 4, y + 1)
-        doc.setTextColor(0, 0, 0)
-        y += codeHeight - 2
-        break
-      }
-
-      case "table": {
-        y = ensureSpace(doc, y, 20, margin)
-
-        autoTable(doc, {
-          startY: y,
-          head: [block.headers.map((h) => sanitizeText(stripInline(h)))],
-          body: block.rows.map((row) =>
-            row.map((cell) => sanitizeText(stripInline(cell)))
-          ),
-          margin: { left: margin, right: margin },
-          styles: {
-            fontSize: 9,
-            font: "helvetica",
-            cellPadding: 2,
-            lineColor: [220, 220, 220],
-            lineWidth: 0.2,
-          },
-          headStyles: {
-            fillColor: [245, 245, 244],
-            textColor: [30, 30, 30],
-            fontStyle: "bold",
-          },
-          alternateRowStyles: {
-            fillColor: [252, 252, 251],
-          },
-          theme: "grid",
-        })
-
-        // Get the Y position after the table
-        y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 4
-        break
-      }
-
-      case "hr": {
-        y = ensureSpace(doc, y, 6, margin)
-        y += 2
-        doc.setDrawColor(200, 200, 200)
-        doc.setLineWidth(0.3)
-        doc.line(margin, y, pageWidth - margin, y)
-        y += 4
-        break
-      }
-
-      case "blank": {
-        y += 3
-        break
-      }
+      srcY += srcSliceHeight
+      remainingHeight -= pageContentHeight
     }
-  }
 
-  const pdfName = filename.replace(/\.(md|markdown|txt|mdx)$/i, ".pdf")
-  doc.save(pdfName)
+    const pdfName = filename.replace(/\.(md|markdown|txt|mdx)$/i, ".pdf")
+    doc.save(pdfName)
+  } finally {
+    document.body.removeChild(container)
+  }
 }
