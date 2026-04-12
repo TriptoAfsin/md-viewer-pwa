@@ -56,6 +56,9 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,woff,woff2}'],
+        cleanupOutdatedCaches: true,
+        navigationPreload: true,
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB — prevent silent precache failures with large WASM
         runtimeCaching: [
           {
             // Cache Shiki WASM and theme files
