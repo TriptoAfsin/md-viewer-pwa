@@ -12,6 +12,8 @@ import { toast } from "sonner"
 import { useRecentFiles } from "@/hooks/useRecentFiles"
 
 const SHIKI_THEME_KEY = "md-view-shiki-theme"
+const TABS_STORAGE_KEY = "md-view-tabs"
+const ACTIVE_TAB_KEY = "md-view-active-tab"
 const MAX_TABS = 10
 
 export type Tab = {
@@ -48,9 +50,36 @@ function getStoredShikiTheme(): string {
   }
 }
 
+type StoredTab = Omit<Tab, "fileHandle">
+
+function getStoredTabs(): { tabs: Tab[]; activeTabId: string | null } {
+  try {
+    const raw = localStorage.getItem(TABS_STORAGE_KEY)
+    const activeId = localStorage.getItem(ACTIVE_TAB_KEY)
+    if (!raw) return { tabs: [], activeTabId: null }
+    const stored: StoredTab[] = JSON.parse(raw)
+    const tabs: Tab[] = stored.map((t) => ({ ...t, fileHandle: null }))
+    return { tabs, activeTabId: activeId && tabs.some((t) => t.id === activeId) ? activeId : null }
+  } catch {
+    return { tabs: [], activeTabId: null }
+  }
+}
+
+function saveTabs(tabs: Tab[], activeTabId: string | null) {
+  try {
+    const toStore: StoredTab[] = tabs
+      .filter((t) => t.markdown != null)
+      .map(({ fileHandle: _, ...rest }) => rest)
+    localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(toStore))
+    localStorage.setItem(ACTIVE_TAB_KEY, activeTabId ?? "")
+  } catch {
+    // localStorage unavailable
+  }
+}
+
 function App() {
-  const [tabs, setTabs] = useState<Tab[]>([])
-  const [activeTabId, setActiveTabId] = useState<string | null>(null)
+  const [tabs, setTabs] = useState<Tab[]>(() => getStoredTabs().tabs)
+  const [activeTabId, setActiveTabId] = useState<string | null>(() => getStoredTabs().activeTabId)
   const [mobileTabsOpen, setMobileTabsOpen] = useState(false)
   const [shikiTheme, setShikiTheme] = useState(getStoredShikiTheme)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -65,6 +94,11 @@ function App() {
   activeTabRef.current = activeTab
   const tabsRef: RefObject<Tab[]> = useRef(tabs)
   tabsRef.current = tabs
+
+  // Persist tabs to localStorage whenever they change
+  useEffect(() => {
+    saveTabs(tabs, activeTabId)
+  }, [tabs, activeTabId])
 
   const updateTab = useCallback((id: string, updater: (tab: Tab) => Tab) => {
     setTabs((prev) => prev.map((t) => (t.id === id ? updater(t) : t)))
@@ -468,7 +502,7 @@ function App() {
       />
 
       {tabs.length >= 1 && (
-        <div className="hidden sm:block">
+        <div className="hidden sm:block sticky top-14 z-40">
           <TabBar
             tabs={tabs}
             activeTabId={activeTabId}

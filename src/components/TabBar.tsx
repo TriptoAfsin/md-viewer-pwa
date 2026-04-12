@@ -31,7 +31,7 @@ export function TabBar({
   }, [activeTabId])
 
   return (
-    <Box className="sticky top-14 z-40 border-b border-border bg-background/80 backdrop-blur-sm">
+    <Box className="border-b border-border bg-background/80 backdrop-blur-sm">
       <HStack gap="gap-0" className="h-9 overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => {
           const isActive = tab.id === activeTabId
