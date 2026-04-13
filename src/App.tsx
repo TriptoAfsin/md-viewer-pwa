@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, type RefObject } from "react"
+import { useState, useCallback, useRef, useEffect, useMemo, type RefObject } from "react"
 import { Box, Stack } from "@/components/primitives"
 import { Header } from "@/components/Header"
 import { DropZone } from "@/components/DropZone"
@@ -89,6 +89,13 @@ function App() {
   const { needRefresh, handleReload, handleDismiss, checkForUpdate } = useServiceWorker()
 
   const activeTab = tabs.find((t) => t.id === activeTabId) ?? null
+
+  // Filenames currently open in tabs — used to mark recent files as already-open.
+  // Recomputes on tab changes so the list un-greys as soon as a tab closes.
+  const openFilenames = useMemo(
+    () => new Set(tabs.map((t) => t.filename).filter((n): n is string => !!n)),
+    [tabs]
+  )
 
   // Always-current refs so callbacks never read stale closures
   const markdownRef: RefObject<string | null> = useRef(activeTab?.markdown ?? null)
@@ -630,6 +637,7 @@ function App() {
             onRemoveRecent={removeRecentFile}
             onPaste={handlePasteFromClipboard}
             recentFiles={recentFiles}
+            openFilenames={openFilenames}
           />
         )}
       </Box>

@@ -13,6 +13,7 @@ type DropZoneProps = {
   onRemoveRecent: (name: string) => void
   onPaste: () => void
   recentFiles: RecentFile[]
+  openFilenames: Set<string>
 }
 
 const ACCEPTED_EXTENSIONS = [".md", ".markdown", ".txt", ".mdx"]
@@ -41,7 +42,7 @@ function formatDate(ts: number): string {
   return d.toLocaleDateString()
 }
 
-export function DropZone({ onFileContent, onOpenFile, onOpenRecent, onRemoveRecent, onPaste, recentFiles }: DropZoneProps) {
+export function DropZone({ onFileContent, onOpenFile, onOpenRecent, onRemoveRecent, onPaste, recentFiles, openFilenames }: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false)
 
   const handleFile = useCallback(
@@ -160,20 +161,26 @@ export function DropZone({ onFileContent, onOpenFile, onOpenRecent, onRemoveRece
               Recent Files
             </Text>
             <Stack gap="gap-1">
-              {recentFiles.map((file) => (
-                <RecentFileRow
-                  key={`${file.name}-${file.openedAt}`}
-                  file={file}
-                  onOpen={() => {
-                    if (file.hasHandle) {
-                      onOpenRecent(file.name)
-                    } else {
-                      toast.info("Re-open this file using the file picker")
-                    }
-                  }}
-                  onRemove={() => onRemoveRecent(file.name)}
-                />
-              ))}
+              {recentFiles.map((file) => {
+                const isOpen = openFilenames.has(file.name)
+                return (
+                  <RecentFileRow
+                    key={`${file.name}-${file.openedAt}`}
+                    file={file}
+                    isOpen={isOpen}
+                    onOpen={() => {
+                      if (isOpen) {
+                        toast.info("This file is already open in a tab")
+                      } else if (file.hasHandle) {
+                        onOpenRecent(file.name)
+                      } else {
+                        toast.info("Re-open this file using the file picker")
+                      }
+                    }}
+                    onRemove={() => onRemoveRecent(file.name)}
+                  />
+                )
+              })}
             </Stack>
           </Stack>
         )}
@@ -184,20 +191,23 @@ export function DropZone({ onFileContent, onOpenFile, onOpenRecent, onRemoveRece
 
 function RecentFileRow({
   file,
+  isOpen,
   onOpen,
   onRemove,
 }: {
   file: RecentFile
+  isOpen: boolean
   onOpen: () => void
   onRemove: () => void
 }) {
   const [confirming, setConfirming] = useState(false)
+  const interactive = file.hasHandle && !isOpen
 
   return (
     <Box
       className={[
         "flex items-center rounded-lg px-3 py-2.5 w-full transition-colors duration-100",
-        file.hasHandle
+        interactive
           ? "hover:bg-muted/50"
           : "opacity-60",
       ].join(" ")}
@@ -206,7 +216,7 @@ function RecentFileRow({
         as="button"
         className={[
           "flex items-center gap-2 min-w-0 flex-1 text-left",
-          file.hasHandle ? "cursor-pointer" : "cursor-default",
+          interactive ? "cursor-pointer" : "cursor-default",
         ].join(" ")}
         onClick={onOpen}
       >
@@ -214,6 +224,11 @@ function RecentFileRow({
         <Text as="span" className="text-sm text-foreground truncate">
           {file.name}
         </Text>
+        {isOpen && (
+          <Text as="span" className="text-[10px] uppercase tracking-wider text-primary font-medium ml-1 shrink-0">
+            Open
+          </Text>
+        )}
       </Box>
       <Box className="flex items-center gap-2 shrink-0 ml-3">
         {confirming ? (
