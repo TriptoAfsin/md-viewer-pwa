@@ -461,9 +461,10 @@ function App() {
     fileHandle: activeTab?.fileHandle ?? null,
     enabled:
       !!activeTab?.fileHandle && !activeTab.editing && !activeTab.dirty,
-    // Re-baseline whenever the active tab or its edit state changes
-    initialLastModified: activeTab?.fileHandle ? 0 : null,
     onFileChanged: handleExternalFileChange,
+    onError: (err) => {
+      console.warn("[file-watcher] stopped:", err)
+    },
   })
 
   // Keyboard shortcuts: Ctrl+S, Ctrl+T, Ctrl+W, Ctrl+Tab, Ctrl+Shift+Tab

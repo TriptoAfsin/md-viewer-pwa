@@ -5,7 +5,6 @@ const POLL_INTERVAL_MS = 2000
 type FileWatcherOptions = {
   fileHandle: FileSystemFileHandle | null
   enabled: boolean
-  initialLastModified: number | null
   onFileChanged: (content: string, lastModified: number) => void
   onError?: (error: unknown) => void
 }
@@ -14,7 +13,10 @@ type FileWatcherOptions = {
  * Polls a FileSystemFileHandle for external changes. Calls `onFileChanged`
  * with new content when the file's `lastModified` timestamp advances.
  *
- * - Only polls while `enabled` is true and the document is visible.
+ * Behavior:
+ * - Establishes a baseline `lastModified` synchronously when the effect
+ *   mounts, BEFORE the first poll delay. This avoids missing edits that
+ *   happen in the interval between opening the file and the first poll.
  * - Pauses polling when the tab is hidden (battery-friendly).
  * - Guards against late responses after unmount or handle change.
  * - Stops polling silently if permission is denied or file is deleted.
@@ -22,7 +24,6 @@ type FileWatcherOptions = {
 export function useFileWatcher({
   fileHandle,
   enabled,
-  initialLastModified,
   onFileChanged,
   onError,
 }: FileWatcherOptions) {
@@ -36,7 +37,7 @@ export function useFileWatcher({
     if (!enabled || !fileHandle) return
 
     let cancelled = false
-    let lastModified = initialLastModified ?? 0
+    let lastModified = 0
     let timeoutId: ReturnType<typeof setTimeout> | null = null
 
     const scheduleNext = () => {
@@ -46,7 +47,6 @@ export function useFileWatcher({
 
     const poll = async () => {
       if (cancelled) return
-      // Skip polling while tab is hidden
       if (document.hidden) {
         scheduleNext()
         return
@@ -56,30 +56,39 @@ export function useFileWatcher({
         const file = await fileHandle.getFile()
         if (cancelled) return
 
-        if (file.lastModified > lastModified && lastModified > 0) {
+        if (file.lastModified > lastModified) {
           const content = await file.text()
           if (cancelled) return
           lastModified = file.lastModified
           onFileChangedRef.current(content, lastModified)
-        } else if (lastModified === 0) {
-          // First check — establish baseline without firing callback
-          lastModified = file.lastModified
         }
       } catch (err) {
         if (cancelled) return
         onErrorRef.current?.(err)
-        // Stop polling on error (permission denied, file deleted, etc.)
         return
       }
 
       scheduleNext()
     }
 
-    scheduleNext()
+    // Establish baseline immediately so the first external edit is detected
+    // even if it happens before the first scheduled poll.
+    ;(async () => {
+      try {
+        const file = await fileHandle.getFile()
+        if (cancelled) return
+        lastModified = file.lastModified
+      } catch (err) {
+        if (cancelled) return
+        onErrorRef.current?.(err)
+        return
+      }
+      scheduleNext()
+    })()
 
     return () => {
       cancelled = true
       if (timeoutId !== null) clearTimeout(timeoutId)
     }
-  }, [fileHandle, enabled, initialLastModified])
+  }, [fileHandle, enabled])
 }
