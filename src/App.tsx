@@ -11,6 +11,7 @@ import { UpdateBanner } from "@/components/UpdateBanner"
 import { toast } from "sonner"
 import { useRecentFiles } from "@/hooks/useRecentFiles"
 import { useServiceWorker } from "@/hooks/useServiceWorker"
+import { useFileWatcher } from "@/hooks/useFileWatcher"
 
 const SHIKI_THEME_KEY = "md-view-shiki-theme"
 const TABS_STORAGE_KEY = "md-view-tabs"
@@ -443,6 +444,27 @@ function App() {
       })
     }
   }, [handleFileContent])
+
+  // Watch the active tab's file for external changes (live-reload).
+  // Only polls when: tab has a file handle, is not dirty, and is not being edited.
+  const handleExternalFileChange = useCallback(
+    (content: string, _lastModified: number) => {
+      const tab = activeTabRef.current
+      if (!tab) return
+      updateTab(tab.id, (t) => ({ ...t, markdown: content }))
+      toast.info(`${tab.filename ?? "File"} updated from disk`)
+    },
+    [updateTab]
+  )
+
+  useFileWatcher({
+    fileHandle: activeTab?.fileHandle ?? null,
+    enabled:
+      !!activeTab?.fileHandle && !activeTab.editing && !activeTab.dirty,
+    // Re-baseline whenever the active tab or its edit state changes
+    initialLastModified: activeTab?.fileHandle ? 0 : null,
+    onFileChanged: handleExternalFileChange,
+  })
 
   // Keyboard shortcuts: Ctrl+S, Ctrl+T, Ctrl+W, Ctrl+Tab, Ctrl+Shift+Tab
   useEffect(() => {
