@@ -374,6 +374,14 @@ function App() {
     [activeTabId, updateTab]
   )
 
+  const handleSwitchToFile = useCallback(
+    (name: string) => {
+      const tab = tabsRef.current.find((t) => t.filename === name)
+      if (tab) handleSwitchTab(tab.id)
+    },
+    [handleSwitchTab]
+  )
+
   const handleCloseTab = useCallback(
     (id: string) => {
       const tab = tabsRef.current.find((t) => t.id === id)
@@ -634,6 +642,7 @@ function App() {
             onFileContent={handleFileContent}
             onOpenFile={handleOpenFile}
             onOpenRecent={handleOpenRecent}
+            onSwitchToFile={handleSwitchToFile}
             onRemoveRecent={removeRecentFile}
             onPaste={handlePasteFromClipboard}
             recentFiles={recentFiles}

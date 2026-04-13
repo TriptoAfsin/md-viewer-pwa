@@ -10,6 +10,7 @@ type DropZoneProps = {
   onFileContent: (content: string, name: string) => void
   onOpenFile: () => void
   onOpenRecent: (name: string) => void
+  onSwitchToFile: (name: string) => void
   onRemoveRecent: (name: string) => void
   onPaste: () => void
   recentFiles: RecentFile[]
@@ -42,7 +43,7 @@ function formatDate(ts: number): string {
   return d.toLocaleDateString()
 }
 
-export function DropZone({ onFileContent, onOpenFile, onOpenRecent, onRemoveRecent, onPaste, recentFiles, openFilenames }: DropZoneProps) {
+export function DropZone({ onFileContent, onOpenFile, onOpenRecent, onSwitchToFile, onRemoveRecent, onPaste, recentFiles, openFilenames }: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false)
 
   const handleFile = useCallback(
@@ -170,7 +171,7 @@ export function DropZone({ onFileContent, onOpenFile, onOpenRecent, onRemoveRece
                     isOpen={isOpen}
                     onOpen={() => {
                       if (isOpen) {
-                        toast.info("This file is already open in a tab")
+                        onSwitchToFile(file.name)
                       } else if (file.hasHandle) {
                         onOpenRecent(file.name)
                       } else {
@@ -201,13 +202,13 @@ function RecentFileRow({
   onRemove: () => void
 }) {
   const [confirming, setConfirming] = useState(false)
-  const interactive = file.hasHandle && !isOpen
+  const clickable = file.hasHandle || isOpen
 
   return (
     <Box
       className={[
         "flex items-center rounded-lg px-3 py-2.5 w-full transition-colors duration-100",
-        interactive
+        clickable
           ? "hover:bg-muted/50"
           : "opacity-60",
       ].join(" ")}
@@ -216,7 +217,7 @@ function RecentFileRow({
         as="button"
         className={[
           "flex items-center gap-2 min-w-0 flex-1 text-left",
-          interactive ? "cursor-pointer" : "cursor-default",
+          clickable ? "cursor-pointer" : "cursor-default",
         ].join(" ")}
         onClick={onOpen}
       >
