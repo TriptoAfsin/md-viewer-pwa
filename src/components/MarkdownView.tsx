@@ -6,6 +6,7 @@ import { FolderOpen, ClipboardCopy } from "lucide-react"
 import { Box, Text, Title } from "@/components/primitives"
 import { CodeBlock } from "@/components/CodeBlock"
 import { ShikiCodeBlock } from "@/components/ShikiCodeBlock"
+import { MermaidDiagram } from "@/components/MermaidDiagram"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -172,6 +173,11 @@ export function MarkdownView({
               {children}
             </code>
           )
+        }
+
+        // Mermaid diagrams
+        if (lang === "mermaid") {
+          return <MermaidDiagram code={codeString} />
         }
 
         // Code block with Shiki
