@@ -35,6 +35,7 @@
 - **Tab bar** — open multiple files in tabs, switch between them, and restore tabs on reload
 - **Beautiful rendering** — clean, typographic Markdown display with GFM support
 - **Code syntax highlighting** — VS Code-quality highlighting powered by Shiki with 10 selectable themes
+- **Mermaid diagrams** — render flowcharts, sequence diagrams, and more from ` ```mermaid ` code blocks
 - **Light & dark mode** — respects system preference with manual toggle
 - **Accent colors** — choose from multiple accent color themes
 - **Export to PDF** — text-based, selectable PDF output via jsPDF
@@ -54,6 +55,7 @@
 - [shadcn/ui](https://ui.shadcn.com/) components
 - [react-markdown](https://github.com/remarkjs/react-markdown) + [remark-gfm](https://github.com/remarkjs/remark-gfm)
 - [Shiki](https://shiki.style/) syntax highlighter
+- [Mermaid](https://mermaid.js.org/) for diagrams
 - [jsPDF](https://github.com/parallax/jsPDF) for PDF export
 - [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) for offline support
 
