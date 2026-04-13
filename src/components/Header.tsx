@@ -54,6 +54,7 @@ type HeaderProps = {
   tabCount: number
   onOpenMobileTabSwitcher: () => void
   onCheckForUpdate: () => void
+  onReloadFile: () => void
 }
 
 export function Header({
@@ -76,6 +77,7 @@ export function Header({
   tabCount,
   onOpenMobileTabSwitcher,
   onCheckForUpdate,
+  onReloadFile,
 }: HeaderProps) {
   const { theme, setTheme } = useTheme()
   const { accentName, setAccent, accents } = useAccentColor()
@@ -178,6 +180,19 @@ export function Header({
               title="Switch tabs"
             >
               {tabCount}
+            </Button>
+          )}
+
+          {filename && hasFileHandle && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onReloadFile}
+              className="active:scale-[0.97]"
+              title="Reload from disk"
+            >
+              <RefreshCw className="h-5.5 w-5.5 sm:h-4.5 sm:w-4.5" />
+              <span className="sr-only">Reload from disk</span>
             </Button>
           )}
 

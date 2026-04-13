@@ -219,7 +219,7 @@ function App() {
     async (name: string) => {
       const result = await openRecentFile(name)
       if (result) {
-        handleFileContent(result.content, result.name)
+        handleFileContent(result.content, result.name, result.handle)
         toast.success(`Opened ${result.name}`)
       } else {
         toast.error("Cannot re-open file. Use the file picker to open it again.")
@@ -467,6 +467,42 @@ function App() {
     },
   })
 
+  const handleReloadFile = useCallback(async () => {
+    const tab = activeTabRef.current
+    if (!tab?.fileHandle) {
+      toast.error("No file to reload")
+      return
+    }
+    if (tab.dirty) {
+      toast("Unsaved changes will be lost.", {
+        action: {
+          label: "Reload anyway",
+          onClick: async () => {
+            try {
+              const file = await tab.fileHandle!.getFile()
+              const content = await file.text()
+              updateTab(tab.id, (t) => ({ ...t, markdown: content, dirty: false }))
+              toast.success("Reloaded from disk")
+            } catch {
+              toast.error("Failed to reload file")
+            }
+          },
+        },
+        cancel: { label: "Cancel", onClick: () => {} },
+        duration: 5000,
+      })
+      return
+    }
+    try {
+      const file = await tab.fileHandle.getFile()
+      const content = await file.text()
+      updateTab(tab.id, (t) => ({ ...t, markdown: content }))
+      toast.success("Reloaded from disk")
+    } catch {
+      toast.error("Failed to reload file")
+    }
+  }, [updateTab])
+
   // Keyboard shortcuts: Ctrl+S, Ctrl+T, Ctrl+W, Ctrl+Tab, Ctrl+Shift+Tab
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -552,6 +588,7 @@ function App() {
         onGoHome={handleGoHome}
         onOpenMobileTabSwitcher={() => setMobileTabsOpen(true)}
         onCheckForUpdate={checkForUpdate}
+        onReloadFile={handleReloadFile}
       />
 
       {tabs.length >= 1 && (

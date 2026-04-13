@@ -133,7 +133,9 @@ export function useRecentFiles() {
   )
 
   const openRecentFile = useCallback(
-    async (name: string): Promise<{ content: string; name: string } | null> => {
+    async (
+      name: string
+    ): Promise<{ content: string; name: string; handle: FileSystemFileHandle } | null> => {
       if (!supportsFileSystemAccess()) return null
 
       const handle = await getHandle(name)
@@ -146,7 +148,7 @@ export function useRecentFiles() {
 
         const file = await handle.getFile()
         const content = await file.text()
-        return { content, name: file.name }
+        return { content, name: file.name, handle }
       } catch {
         return null
       }
