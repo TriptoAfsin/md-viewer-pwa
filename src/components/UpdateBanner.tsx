@@ -12,7 +12,7 @@ export function UpdateBanner({ needRefresh, onReload, onDismiss }: UpdateBannerP
   return (
     <div
       className="fixed z-50 flex items-center gap-2 rounded-lg border border-border bg-background/95 backdrop-blur px-3 py-2.5 shadow-lg animate-in slide-in-from-bottom-4 fade-in duration-300
-      bottom-[max(1rem,env(safe-area-inset-bottom,0px))]
+      bottom-[max(1rem,var(--safe-bottom))]
       left-1/2 w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2
       sm:left-auto sm:right-4 sm:w-auto sm:max-w-none sm:translate-x-0"
     >

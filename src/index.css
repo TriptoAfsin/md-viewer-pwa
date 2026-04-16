@@ -41,6 +41,20 @@
   --radius-2xl: calc(var(--radius) * 1.8);
 }
 
+/* Safe-area insets — exposed as custom properties so Tailwind arbitrary
+   values don't need to contain env() commas which can break compilation.
+   constant() is the legacy iOS 11.0–11.1 syntax; env() is the standard. */
+:root {
+  --safe-top: constant(safe-area-inset-top);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: constant(safe-area-inset-right);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: constant(safe-area-inset-bottom);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: constant(safe-area-inset-left);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
 /* Light mode — soft editorial, warm stone tones, violet accent */
 :root {
   --radius: 0.625rem;

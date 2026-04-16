@@ -4,6 +4,7 @@ import { Box, Stack, Text, Title } from "@/components/primitives"
 import { Logo } from "@/components/Logo"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
+import { deriveFilename } from "@/lib/utils"
 import type { RecentFile } from "@/hooks/useRecentFiles"
 
 type DropZoneProps = {
@@ -91,7 +92,7 @@ export function DropZone({ onFileContent, onOpenFile, onOpenRecent, onSwitchToFi
     (e: React.ClipboardEvent) => {
       const text = e.clipboardData.getData("text/plain")
       if (text.trim()) {
-        onFileContent(text, "pasted-content.md")
+        onFileContent(text, deriveFilename(text))
       }
     },
     [onFileContent]

@@ -12,6 +12,7 @@ import { toast } from "sonner"
 import { useRecentFiles } from "@/hooks/useRecentFiles"
 import { useServiceWorker } from "@/hooks/useServiceWorker"
 import { useFileWatcher } from "@/hooks/useFileWatcher"
+import { deriveFilename } from "@/lib/utils"
 
 const SHIKI_THEME_KEY = "md-view-shiki-theme"
 const TABS_STORAGE_KEY = "md-view-tabs"
@@ -239,7 +240,7 @@ function App() {
     try {
       const text = await navigator.clipboard.readText()
       if (text.trim()) {
-        handleFileContent(text, "pasted-content.md")
+        handleFileContent(text, deriveFilename(text))
         toast.success("Pasted from clipboard")
       } else {
         toast.error("Clipboard is empty")
@@ -422,6 +423,12 @@ function App() {
     },
     [activeTabId]
   )
+
+  const handleRenameTab = useCallback((id: string, newName: string) => {
+    const trimmed = newName.trim()
+    if (!trimmed) return
+    updateTab(id, (t) => ({ ...t, filename: trimmed }))
+  }, [updateTab])
 
   const handleNewTab = useCallback(() => {
     if (tabs.length >= MAX_TABS) {
@@ -607,13 +614,14 @@ function App() {
       />
 
       {tabs.length >= 1 && (
-        <div className="hidden sm:block sticky top-14 z-40">
+        <div className="hidden sm:block sticky top-[calc(3.5rem+var(--safe-top))] z-40">
           <TabBar
             tabs={tabs}
             activeTabId={activeTabId}
             onSwitchTab={handleSwitchTab}
             onCloseTab={handleCloseTab}
             onNewTab={handleNewTab}
+            onRenameTab={handleRenameTab}
           />
         </div>
       )}
@@ -665,6 +673,7 @@ function App() {
           handleNewTab()
           setMobileTabsOpen(false)
         }}
+        onRenameTab={handleRenameTab}
       />
 
       <input

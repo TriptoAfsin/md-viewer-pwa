@@ -91,7 +91,7 @@ export function Header({
   return (
     <Box
       as="header"
-      className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm"
+      className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm pt-[var(--safe-top)]"
     >
       <HStack className="h-14 px-4 justify-between">
         {/* Left: Logo/Home + name + actions */}

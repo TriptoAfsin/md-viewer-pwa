@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react"
+import { useRef, useEffect, useState } from "react"
 import { FileText, X, Plus } from "lucide-react"
 import { Box, HStack, Text } from "@/components/primitives"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,7 @@ type TabBarProps = {
   onSwitchTab: (id: string) => void
   onCloseTab: (id: string) => void
   onNewTab: () => void
+  onRenameTab: (id: string, newName: string) => void
 }
 
 export function TabBar({
@@ -18,8 +19,12 @@ export function TabBar({
   onSwitchTab,
   onCloseTab,
   onNewTab,
+  onRenameTab,
 }: TabBarProps) {
   const activeRef = useRef<HTMLButtonElement>(null)
+  const [editingTabId, setEditingTabId] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState("")
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // Scroll active tab into view when it changes
   useEffect(() => {
@@ -30,16 +35,45 @@ export function TabBar({
     })
   }, [activeTabId])
 
+  // Focus input when entering edit mode
+  useEffect(() => {
+    if (editingTabId) {
+      inputRef.current?.focus()
+      inputRef.current?.select()
+    }
+  }, [editingTabId])
+
+  const startRename = (tab: Tab) => {
+    setEditingTabId(tab.id)
+    setEditValue(tab.filename || "Untitled")
+  }
+
+  const commitRename = () => {
+    if (editingTabId && editValue.trim()) {
+      onRenameTab(editingTabId, editValue.trim())
+    }
+    setEditingTabId(null)
+  }
+
+  const cancelRename = () => {
+    setEditingTabId(null)
+  }
+
   return (
     <Box className="border-b border-border bg-background/80 backdrop-blur-sm">
       <HStack gap="gap-0" className="h-9 overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => {
           const isActive = tab.id === activeTabId
+          const isEditing = tab.id === editingTabId
           return (
             <button
               key={tab.id}
               ref={isActive ? activeRef : undefined}
               onClick={() => onSwitchTab(tab.id)}
+              onDoubleClick={(e) => {
+                e.preventDefault()
+                startRename(tab)
+              }}
               className={[
                 "group flex items-center gap-1.5 px-3 h-9 max-w-[180px] min-w-[100px] text-sm border-b-2 shrink-0 cursor-pointer transition-colors",
                 isActive
@@ -51,12 +85,30 @@ export function TabBar({
               {tab.dirty && (
                 <Box className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
               )}
-              <Text
-                as="span"
-                className="truncate text-xs"
-              >
-                {tab.filename || "Untitled"}
-              </Text>
+              {isEditing ? (
+                <input
+                  ref={inputRef}
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={commitRename}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") commitRename()
+                    if (e.key === "Escape") cancelRename()
+                    e.stopPropagation()
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                  className="truncate text-xs bg-transparent border-b border-primary outline-none w-full min-w-0"
+                />
+              ) : (
+                <Text
+                  as="span"
+                  className="truncate text-xs"
+                  title="Double-click to rename"
+                >
+                  {tab.filename || "Untitled"}
+                </Text>
+              )}
               <button
                 onClick={(e) => {
                   e.stopPropagation()
