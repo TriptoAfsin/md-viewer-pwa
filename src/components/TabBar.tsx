@@ -60,8 +60,8 @@ export function TabBar({
   }
 
   return (
-    <Box className="border-b border-border bg-background/80 backdrop-blur-sm">
-      <HStack gap="gap-0" className="h-9 overflow-x-auto scrollbar-hide">
+    <Box className="border-b border-border bg-background/80 backdrop-blur-sm w-full min-w-0 overflow-hidden">
+      <HStack gap="gap-0" className="h-9 overflow-x-auto scrollbar-thin">
         {tabs.map((tab) => {
           const isActive = tab.id === activeTabId
           const isEditing = tab.id === editingTabId
@@ -75,7 +75,7 @@ export function TabBar({
                 startRename(tab)
               }}
               className={[
-                "group flex items-center gap-1.5 px-3 h-9 max-w-[180px] min-w-[100px] text-sm border-b-2 shrink-0 cursor-pointer transition-colors",
+                "group flex items-center gap-1.5 px-3 h-9 max-w-[180px] min-w-[70px] text-sm border-b-2 cursor-pointer transition-colors",
                 isActive
                   ? "border-primary bg-muted/50 text-foreground font-medium"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30",

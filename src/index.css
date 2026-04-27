@@ -127,6 +127,25 @@
   display: none;
 }
 
+/* Thin scrollbar for the tab bar — only appears when overflowing */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  height: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 9999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted-foreground);
+}
+
 /* Smooth theme transitions — only target theme-sensitive properties,
    and use a lower-specificity selector so Tailwind utilities can override. */
 @layer base {
