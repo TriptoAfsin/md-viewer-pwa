@@ -17,7 +17,7 @@ import { deriveFilename } from "@/lib/utils"
 const SHIKI_THEME_KEY = "md-view-shiki-theme"
 const TABS_STORAGE_KEY = "md-view-tabs"
 const ACTIVE_TAB_KEY = "md-view-active-tab"
-const MAX_TABS = 10
+const MAX_TABS = 30
 
 export type Tab = {
   id: string
@@ -139,7 +139,7 @@ function App() {
         return
       }
       if (tabsRef.current.length >= MAX_TABS) {
-        toast.error("Maximum 10 tabs open. Close a tab first.")
+        toast.error("Maximum 30 tabs open. Close a tab first.")
         return
       }
       const newTab = createTab(content, name, handle)
@@ -432,7 +432,7 @@ function App() {
 
   const handleNewTab = useCallback(() => {
     if (tabs.length >= MAX_TABS) {
-      toast.error("Maximum 10 tabs open. Close a tab first.")
+      toast.error("Maximum 30 tabs open. Close a tab first.")
       return
     }
     const newTab = createTab(null, null)
