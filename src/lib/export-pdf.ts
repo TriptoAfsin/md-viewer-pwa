@@ -40,9 +40,11 @@ function buildStyledContainer(html: string): HTMLDivElement {
     .pdf-content p { margin: 10px 0; }
     .pdf-content a { color: #7c3aed; text-decoration: underline; }
     .pdf-content blockquote { margin: 12px 0; padding-left: 16px; border-left: 4px solid #7c3aed80; color: #78716c; font-style: italic; }
-    .pdf-content ul { margin: 10px 0; padding-left: 24px; list-style: disc; }
-    .pdf-content ol { margin: 10px 0; padding-left: 24px; list-style: decimal; }
+    .pdf-content ul { margin: 10px 0; padding-left: 24px; list-style: none; }
+    .pdf-content ol { margin: 10px 0; padding-left: 24px; list-style: none; }
     .pdf-content li { margin: 3px 0; }
+    .pdf-content ul > li > .pdf-marker { display: inline-block; width: 1.2em; margin-left: -1.2em; }
+    .pdf-content ol > li > .pdf-marker { display: inline-block; min-width: 1.6em; margin-left: -1.8em; padding-right: 0.2em; text-align: right; }
     .pdf-content hr { border: none; border-top: 1px solid #e7e5e4; margin: 20px 0; }
     .pdf-content img { max-width: 100%; border-radius: 8px; margin: 12px 0; }
     .pdf-content code { background: #f5f5f4; padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, 'Cascadia Code', Consolas, monospace; font-size: 13px; }
@@ -52,12 +54,40 @@ function buildStyledContainer(html: string): HTMLDivElement {
     .pdf-content th { text-align: left; font-weight: 600; padding: 8px; border-bottom: 2px solid #e7e5e4; }
     .pdf-content td { padding: 8px; border-bottom: 1px solid #e7e5e4; }
     .pdf-content tr:nth-child(even) { background: #fafaf9; }
-    .pdf-content del { text-decoration: line-through; color: #a8a29e; }
+    .pdf-content del {
+      text-decoration: none;
+      color: #a8a29e;
+      background-image: linear-gradient(transparent calc(50% - 0.6px), #a8a29e calc(50% - 0.6px), #a8a29e calc(50% + 0.6px), transparent calc(50% + 0.6px));
+    }
     .pdf-content input[type="checkbox"] { margin-right: 6px; }
   </style><div class="pdf-content">${html}</div>`
 
   document.body.appendChild(container)
+  injectListMarkers(container)
   return container
+}
+
+// html2canvas misaligns native list markers (renders them at cap-height instead
+// of the text baseline). Replace them with inline span markers so the bullets
+// and numbers sit on the correct line.
+function injectListMarkers(container: HTMLElement) {
+  const lists = container.querySelectorAll<HTMLElement>(".pdf-content ul, .pdf-content ol")
+  lists.forEach((list) => {
+    const ordered = list.tagName === "OL"
+    const startAttr = ordered ? Number(list.getAttribute("start") ?? "1") : 0
+    let index = startAttr
+    Array.from(list.children).forEach((child) => {
+      if (child.tagName !== "LI") return
+      const li = child as HTMLElement
+      // Skip GFM task-list items (those have a checkbox marker already)
+      if (li.classList.contains("task-list-item")) return
+      const marker = document.createElement("span")
+      marker.className = "pdf-marker"
+      marker.textContent = ordered ? `${index}.` : "•"
+      li.insertBefore(marker, li.firstChild)
+      if (ordered) index++
+    })
+  })
 }
 
 export async function exportToPdf(markdown: string, filename: string) {

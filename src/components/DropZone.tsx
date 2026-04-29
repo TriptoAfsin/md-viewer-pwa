@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react"
-import { FileUp, Clock, FileText, ExternalLink, ClipboardPaste, Trash2 } from "lucide-react"
+import { FileUp, Clock, FileText, ExternalLink, ClipboardPaste, Trash2, FilePlus } from "lucide-react"
 import { Box, Stack, Text, Title } from "@/components/primitives"
 import { Logo } from "@/components/Logo"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,7 @@ import type { RecentFile } from "@/hooks/useRecentFiles"
 type DropZoneProps = {
   onFileContent: (content: string, name: string) => void
   onOpenFile: () => void
+  onNewBlank: () => void
   onOpenRecent: (name: string) => void
   onSwitchToFile: (name: string) => void
   onRemoveRecent: (name: string) => void
@@ -44,7 +45,7 @@ function formatDate(ts: number): string {
   return d.toLocaleDateString()
 }
 
-export function DropZone({ onFileContent, onOpenFile, onOpenRecent, onSwitchToFile, onRemoveRecent, onPaste, recentFiles, openFilenames }: DropZoneProps) {
+export function DropZone({ onFileContent, onOpenFile, onNewBlank, onOpenRecent, onSwitchToFile, onRemoveRecent, onPaste, recentFiles, openFilenames }: DropZoneProps) {
   const [isDragging, setIsDragging] = useState(false)
 
   const handleFile = useCallback(
@@ -127,7 +128,7 @@ export function DropZone({ onFileContent, onOpenFile, onOpenRecent, onSwitchToFi
             </Text>
           </Stack>
 
-          <Box className="flex gap-2">
+          <Box className="flex flex-wrap justify-center gap-2">
             <Button
               size="lg"
               onClick={onOpenFile}
@@ -135,6 +136,15 @@ export function DropZone({ onFileContent, onOpenFile, onOpenRecent, onSwitchToFi
             >
               <FileUp className="h-4 w-4 mr-2" />
               Open File
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={onNewBlank}
+              className="active:scale-[0.97] transition-transform"
+            >
+              <FilePlus className="h-4 w-4 mr-2" />
+              New
             </Button>
             <Button
               size="lg"

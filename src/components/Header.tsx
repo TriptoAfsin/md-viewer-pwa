@@ -2,7 +2,7 @@ import { useState } from "react"
 import {
   Sun, Moon, Monitor, FileText, FileDown, FolderOpen, Palette, EllipsisVertical,
   Heart, Copyright, ExternalLink, Pencil, Eye, Clock, Trash2, ClipboardPaste,
-  Save, Home, Download, Paintbrush, RefreshCw,
+  Save, Home, Download, Paintbrush, RefreshCw, Columns2,
 } from "lucide-react"
 import { Box, HStack, Text } from "@/components/primitives"
 import { Logo } from "@/components/Logo"
@@ -38,11 +38,13 @@ type HeaderProps = {
   filename: string | null
   shikiTheme: string
   editing: boolean
+  splitView: boolean
   hasFileHandle: boolean
   recentFiles: RecentFile[]
   onShikiThemeChange: (theme: string) => void
   onOpenFile: () => void
   onToggleEdit: () => void
+  onToggleSplit: () => void
   onOpenRecent: (name: string) => void
   onRemoveRecent: (name: string) => void
   onExportPdf: () => void
@@ -61,11 +63,13 @@ export function Header({
   filename,
   shikiTheme,
   editing,
+  splitView,
   hasFileHandle,
   recentFiles,
   onShikiThemeChange,
   onOpenFile,
   onToggleEdit,
+  onToggleSplit,
   onOpenRecent,
   onRemoveRecent,
   onExportPdf,
@@ -132,6 +136,18 @@ export function Header({
               <span className="sr-only">{editing ? "Preview" : "Edit"}</span>
             </Button>
           )}
+          {filename && (
+            <Button
+              variant={splitView ? "default" : "ghost"}
+              size="icon"
+              onClick={onToggleSplit}
+              className="active:scale-[0.97] hidden sm:inline-flex"
+              title={splitView ? "Exit split view" : "Split view"}
+            >
+              <Columns2 className="h-5.5 w-5.5 sm:h-4.5 sm:w-4.5" />
+              <span className="sr-only">{splitView ? "Exit split view" : "Split view"}</span>
+            </Button>
+          )}
         </HStack>
 
         {/* Center: filename */}
@@ -146,7 +162,7 @@ export function Header({
 
         {/* Right: save + theme toggle + 3-dot menu */}
         <HStack gap="gap-1">
-          {editing && filename && (
+          {(editing || splitView) && filename && (
             <Button
               variant="ghost"
               size="icon"

@@ -4,6 +4,7 @@ import { Header } from "@/components/Header"
 import { DropZone } from "@/components/DropZone"
 import { MarkdownView } from "@/components/MarkdownView"
 import { MarkdownEditor } from "@/components/MarkdownEditor"
+import { SplitView } from "@/components/SplitView"
 import { TabBar } from "@/components/TabBar"
 import { MobileTabSwitcher } from "@/components/MobileTabSwitcher"
 import { Toaster } from "@/components/ui/sonner"
@@ -25,6 +26,7 @@ export type Tab = {
   filename: string | null
   fileHandle: FileSystemFileHandle | null
   editing: boolean
+  splitView: boolean
   dirty: boolean
   scrollPosition: number
 }
@@ -40,6 +42,7 @@ function createTab(
     filename,
     fileHandle: fileHandle ?? null,
     editing: false,
+    splitView: false,
     dirty: false,
     scrollPosition: 0,
   }
@@ -60,8 +63,17 @@ function getStoredTabs(): { tabs: Tab[]; activeTabId: string | null } {
     const raw = localStorage.getItem(TABS_STORAGE_KEY)
     const activeId = localStorage.getItem(ACTIVE_TAB_KEY)
     if (!raw) return { tabs: [], activeTabId: null }
-    const stored: StoredTab[] = JSON.parse(raw)
-    const tabs: Tab[] = stored.map((t) => ({ ...t, fileHandle: null }))
+    const stored: Partial<StoredTab>[] = JSON.parse(raw)
+    const tabs: Tab[] = stored.map((t) => ({
+      id: t.id ?? crypto.randomUUID(),
+      markdown: t.markdown ?? null,
+      filename: t.filename ?? null,
+      editing: t.editing ?? false,
+      splitView: t.splitView ?? false,
+      dirty: t.dirty ?? false,
+      scrollPosition: t.scrollPosition ?? 0,
+      fileHandle: null,
+    }))
     return { tabs, activeTabId: activeId && tabs.some((t) => t.id === activeId) ? activeId : null }
   } catch {
     return { tabs: [], activeTabId: null }
@@ -252,7 +264,12 @@ function App() {
 
   const handleToggleEdit = useCallback(() => {
     if (!activeTabId) return
-    updateTab(activeTabId, (t) => ({ ...t, editing: !t.editing }))
+    updateTab(activeTabId, (t) => ({ ...t, editing: !t.editing, splitView: false }))
+  }, [activeTabId, updateTab])
+
+  const handleToggleSplit = useCallback(() => {
+    if (!activeTabId) return
+    updateTab(activeTabId, (t) => ({ ...t, splitView: !t.splitView, editing: false }))
   }, [activeTabId, updateTab])
 
   const handleEditorChange = useCallback(
@@ -440,6 +457,26 @@ function App() {
     setActiveTabId(newTab.id)
   }, [tabs.length])
 
+  const handleNewBlank = useCallback(() => {
+    const current = activeTabRef.current
+    if (current && current.markdown == null) {
+      updateTab(current.id, (t) => ({
+        ...t,
+        markdown: "",
+        filename: "Untitled.md",
+        editing: true,
+      }))
+      return
+    }
+    if (tabsRef.current.length >= MAX_TABS) {
+      toast.error("Maximum 30 tabs open. Close a tab first.")
+      return
+    }
+    const newTab: Tab = { ...createTab("", "Untitled.md"), editing: true }
+    setTabs((prev) => [...prev, newTab])
+    setActiveTabId(newTab.id)
+  }, [updateTab])
+
   // Restore scroll position when switching tabs
   useEffect(() => {
     if (activeTab) {
@@ -482,7 +519,7 @@ function App() {
   useFileWatcher({
     fileHandle: activeTab?.fileHandle ?? null,
     enabled:
-      !!activeTab?.fileHandle && !activeTab.editing && !activeTab.dirty,
+      !!activeTab?.fileHandle && !activeTab.editing && !activeTab.splitView && !activeTab.dirty,
     onFileChanged: handleExternalFileChange,
     onError: (err) => {
       console.warn("[file-watcher] stopped:", err)
@@ -534,7 +571,7 @@ function App() {
       if (ctrl && e.key === "s") {
         e.preventDefault()
         const tab = activeTabRef.current
-        if (!tab?.editing || !markdownRef.current) return
+        if (!tab || (!tab.editing && !tab.splitView) || !markdownRef.current) return
         if (tab.fileHandle) {
           handleSave()
         } else {
@@ -594,12 +631,14 @@ function App() {
         filename={activeTab?.filename ?? null}
         shikiTheme={shikiTheme}
         editing={activeTab?.editing ?? false}
+        splitView={activeTab?.splitView ?? false}
         hasFileHandle={!!activeTab?.fileHandle}
         recentFiles={recentFiles}
         tabCount={tabs.length}
         onShikiThemeChange={handleShikiThemeChange}
         onOpenFile={handleOpenFile}
         onToggleEdit={handleToggleEdit}
+        onToggleSplit={handleToggleSplit}
         onOpenRecent={handleOpenRecent}
         onRemoveRecent={removeRecentFile}
         onExportPdf={handleExportPdf}
@@ -628,7 +667,18 @@ function App() {
 
       <Box as="main" className="flex-1 flex flex-col">
         {activeTab?.markdown != null ? (
-          activeTab.editing ? (
+          activeTab.splitView ? (
+            <SplitView
+              key={activeTab.id}
+              value={activeTab.markdown}
+              filename={activeTab.filename}
+              shikiTheme={shikiTheme}
+              onChange={handleEditorChange}
+              onOpenFile={handleOpenFile}
+              onExportPdf={handleExportPdf}
+              onExportText={handleExportText}
+            />
+          ) : activeTab.editing ? (
             <MarkdownEditor
               key={activeTab.id}
               value={activeTab.markdown}
@@ -649,6 +699,7 @@ function App() {
           <DropZone
             onFileContent={handleFileContent}
             onOpenFile={handleOpenFile}
+            onNewBlank={handleNewBlank}
             onOpenRecent={handleOpenRecent}
             onSwitchToFile={handleSwitchToFile}
             onRemoveRecent={removeRecentFile}
