@@ -121,15 +121,37 @@ export function MarkdownView({
         <Box as="li" className="leading-7">{children}</Box>
       ),
       hr: () => <Box as="hr" className="my-6 border-t border-border" />,
-      img: ({ src, alt }) => (
-        <Box
-          as="img"
-          className="max-w-full rounded-lg my-4"
-          src={src}
-          alt={alt || ""}
-          loading="lazy"
-        />
-      ),
+      img: ({ src, alt }) => {
+        const url = typeof src === "string" ? src.split(/[?#]/)[0].toLowerCase() : ""
+
+        // Video files — render a player instead of a broken <img>
+        if (/\.(mp4|webm|ogv|mov|m4v)$/.test(url)) {
+          return (
+            <Box
+              as="video"
+              className="max-w-full rounded-lg my-4"
+              src={src}
+              controls
+              preload="metadata"
+            />
+          )
+        }
+
+        // Audio files
+        if (/\.(mp3|wav|ogg|oga|m4a|aac|flac)$/.test(url)) {
+          return <Box as="audio" className="w-full my-4" src={src} controls preload="metadata" />
+        }
+
+        return (
+          <Box
+            as="img"
+            className="max-w-full rounded-lg my-4"
+            src={src}
+            alt={alt || ""}
+            loading="lazy"
+          />
+        )
+      },
       table: ({ children }) => (
         <Box className="my-4 overflow-x-auto">
           <Box
