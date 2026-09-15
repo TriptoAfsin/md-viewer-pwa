@@ -18,7 +18,8 @@ import { deriveFilename } from "@/lib/utils"
 const SHIKI_THEME_KEY = "md-view-shiki-theme"
 const TABS_STORAGE_KEY = "md-view-tabs"
 const ACTIVE_TAB_KEY = "md-view-active-tab"
-const MAX_TABS = 30
+export const MAX_TABS = 60
+const MAX_CLOSED_TABS = 10
 
 export type Tab = {
   id: string
@@ -118,6 +119,9 @@ function App() {
   const tabsRef: RefObject<Tab[]> = useRef(tabs)
   tabsRef.current = tabs
 
+  // Stack of recently closed tabs, for Ctrl+Shift+T
+  const closedTabsRef: RefObject<{ tab: Tab; index: number }[]> = useRef([])
+
   // Persist tabs to localStorage whenever they change
   useEffect(() => {
     saveTabs(tabs, activeTabId)
@@ -151,7 +155,7 @@ function App() {
         return
       }
       if (tabsRef.current.length >= MAX_TABS) {
-        toast.error("Maximum 30 tabs open. Close a tab first.")
+        toast.error(`Maximum ${MAX_TABS} tabs open. Close a tab first.`)
         return
       }
       const newTab = createTab(content, name, handle)
@@ -407,6 +411,13 @@ function App() {
 
       const doClose = () => {
         setTabs((prev) => {
+          const closedIdx = prev.findIndex((t) => t.id === id)
+          if (closedIdx !== -1) {
+            closedTabsRef.current.push({ tab: prev[closedIdx], index: closedIdx })
+            if (closedTabsRef.current.length > MAX_CLOSED_TABS) {
+              closedTabsRef.current.shift()
+            }
+          }
           const next = prev.filter((t) => t.id !== id)
           if (next.length === 0) {
             setActiveTabId(null)
@@ -441,6 +452,26 @@ function App() {
     [activeTabId]
   )
 
+  // Reopen the most recently closed tab at its original position (Ctrl+Shift+T)
+  const handleReopenClosedTab = useCallback(() => {
+    const entry = closedTabsRef.current.pop()
+    if (!entry) {
+      toast("No recently closed tabs")
+      return
+    }
+    if (tabsRef.current.length >= MAX_TABS) {
+      closedTabsRef.current.push(entry)
+      toast.error(`Maximum ${MAX_TABS} tabs open. Close a tab first.`)
+      return
+    }
+    setTabs((prev) => {
+      const next = [...prev]
+      next.splice(Math.min(entry.index, next.length), 0, entry.tab)
+      return next
+    })
+    setActiveTabId(entry.tab.id)
+  }, [])
+
   const handleRenameTab = useCallback((id: string, newName: string) => {
     const trimmed = newName.trim()
     if (!trimmed) return
@@ -449,7 +480,7 @@ function App() {
 
   const handleNewTab = useCallback(() => {
     if (tabs.length >= MAX_TABS) {
-      toast.error("Maximum 30 tabs open. Close a tab first.")
+      toast.error(`Maximum ${MAX_TABS} tabs open. Close a tab first.`)
       return
     }
     const newTab = createTab(null, null)
@@ -469,7 +500,7 @@ function App() {
       return
     }
     if (tabsRef.current.length >= MAX_TABS) {
-      toast.error("Maximum 30 tabs open. Close a tab first.")
+      toast.error(`Maximum ${MAX_TABS} tabs open. Close a tab first.`)
       return
     }
     const newTab: Tab = { ...createTab("", "Untitled.md"), editing: true }
@@ -562,13 +593,51 @@ function App() {
     }
   }, [updateTab])
 
-  // Keyboard shortcuts: Ctrl+S, Ctrl+T, Ctrl+W, Ctrl+Tab, Ctrl+Shift+Tab
+  // Keyboard shortcuts: Ctrl+S/P/T/W, Ctrl+Shift+T, Ctrl+Tab, Ctrl+1-9, Ctrl+PageUp/Down
   useEffect(() => {
+    const cycleTab = (delta: number) => {
+      const currentTabs = tabsRef.current
+      if (currentTabs.length < 2) return
+      const idx = currentTabs.findIndex((t) => t.id === activeTabRef.current?.id)
+      if (idx === -1) return
+      const len = currentTabs.length
+      handleSwitchTab(currentTabs[(idx + delta + len) % len].id)
+    }
+
     const handler = (e: KeyboardEvent) => {
       const ctrl = e.ctrlKey || e.metaKey
+      // e.key is uppercased while Shift is held, so normalize single characters
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key
+
+      // Ctrl+Shift+T — reopen last closed tab (must precede the Ctrl+T check)
+      if (ctrl && e.shiftKey && key === "t") {
+        e.preventDefault()
+        handleReopenClosedTab()
+        return
+      }
+
+      // Ctrl+1-8 — jump to that tab; Ctrl+9 — jump to the last tab
+      if (ctrl && !e.shiftKey && !e.altKey && key >= "1" && key <= "9") {
+        const currentTabs = tabsRef.current
+        if (currentTabs.length === 0) return
+        e.preventDefault()
+        const target =
+          key === "9"
+            ? currentTabs[currentTabs.length - 1]
+            : currentTabs[Number(key) - 1]
+        if (target) handleSwitchTab(target.id)
+        return
+      }
+
+      // Ctrl+PageDown / Ctrl+PageUp — next / previous tab
+      if (ctrl && (e.key === "PageDown" || e.key === "PageUp")) {
+        e.preventDefault()
+        cycleTab(e.key === "PageDown" ? 1 : -1)
+        return
+      }
 
       // Ctrl+S — save
-      if (ctrl && e.key === "s") {
+      if (ctrl && key === "s") {
         e.preventDefault()
         const tab = activeTabRef.current
         if (!tab || (!tab.editing && !tab.splitView) || !markdownRef.current) return
@@ -581,7 +650,7 @@ function App() {
       }
 
       // Ctrl+P — print
-      if (ctrl && e.key === "p") {
+      if (ctrl && key === "p") {
         e.preventDefault()
         if (activeTabRef.current?.markdown != null) {
           window.print()
@@ -590,14 +659,14 @@ function App() {
       }
 
       // Ctrl+T — new tab
-      if (ctrl && e.key === "t") {
+      if (ctrl && key === "t") {
         e.preventDefault()
         handleNewTab()
         return
       }
 
       // Ctrl+W — close tab
-      if (ctrl && e.key === "w") {
+      if (ctrl && key === "w") {
         e.preventDefault()
         const tab = activeTabRef.current
         if (tab) {
@@ -609,21 +678,20 @@ function App() {
       // Ctrl+Tab / Ctrl+Shift+Tab — cycle tabs
       if (ctrl && e.key === "Tab") {
         e.preventDefault()
-        const currentTabs = tabsRef.current
-        if (currentTabs.length < 2) return
-        const currentId = activeTabRef.current?.id
-        const idx = currentTabs.findIndex((t) => t.id === currentId)
-        if (idx === -1) return
-        const nextIdx = e.shiftKey
-          ? (idx - 1 + currentTabs.length) % currentTabs.length
-          : (idx + 1) % currentTabs.length
-        handleSwitchTab(currentTabs[nextIdx].id)
+        cycleTab(e.shiftKey ? -1 : 1)
         return
       }
     }
     window.addEventListener("keydown", handler)
     return () => window.removeEventListener("keydown", handler)
-  }, [handleSave, handleSaveAs, handleNewTab, handleCloseTab, handleSwitchTab])
+  }, [
+    handleSave,
+    handleSaveAs,
+    handleNewTab,
+    handleCloseTab,
+    handleSwitchTab,
+    handleReopenClosedTab,
+  ])
 
   return (
     <Stack gap="gap-0" className="min-h-svh">
