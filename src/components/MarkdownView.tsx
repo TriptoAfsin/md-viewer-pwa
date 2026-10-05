@@ -15,6 +15,7 @@ import {
   ContextMenuSeparator,
 } from "@/components/ui/context-menu"
 import { useShiki } from "@/hooks/useShiki"
+import { normalizeMarkdown } from "@/lib/normalize-markdown"
 
 import { toast } from "sonner"
 import type { Components } from "react-markdown"
@@ -230,7 +231,7 @@ export function MarkdownView({
         )}
 
         <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]} components={components}>
-          {content}
+          {normalizeMarkdown(content)}
         </ReactMarkdown>
       </ContextMenuTrigger>
 

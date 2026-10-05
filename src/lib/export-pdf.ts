@@ -3,6 +3,7 @@ import remarkParse from "remark-parse"
 import remarkGfm from "remark-gfm"
 import remarkRehype from "remark-rehype"
 import rehypeStringify from "rehype-stringify"
+import { normalizeMarkdown } from "./normalize-markdown"
 
 async function markdownToHtml(markdown: string): Promise<string> {
   const result = await unified()
@@ -10,7 +11,7 @@ async function markdownToHtml(markdown: string): Promise<string> {
     .use(remarkGfm)
     .use(remarkRehype)
     .use(rehypeStringify)
-    .process(markdown)
+    .process(normalizeMarkdown(markdown))
   return String(result)
 }
 
