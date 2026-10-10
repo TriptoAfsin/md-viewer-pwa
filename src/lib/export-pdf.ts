@@ -4,15 +4,17 @@ import remarkGfm from "remark-gfm"
 import remarkRehype from "remark-rehype"
 import rehypeStringify from "rehype-stringify"
 import { normalizeMarkdown } from "./normalize-markdown"
+import { splitFrontmatter, frontmatterToHtml } from "./frontmatter"
 
 async function markdownToHtml(markdown: string): Promise<string> {
+  const { frontmatter, body } = splitFrontmatter(markdown)
   const result = await unified()
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkRehype)
     .use(rehypeStringify)
-    .process(normalizeMarkdown(markdown))
-  return String(result)
+    .process(normalizeMarkdown(body))
+  return (frontmatter ? frontmatterToHtml(frontmatter) : "") + String(result)
 }
 
 function buildStyledContainer(html: string): HTMLDivElement {
@@ -55,6 +57,10 @@ function buildStyledContainer(html: string): HTMLDivElement {
     .pdf-content th { text-align: left; font-weight: 600; padding: 8px; border-bottom: 2px solid #e7e5e4; }
     .pdf-content td { padding: 8px; border-bottom: 1px solid #e7e5e4; }
     .pdf-content tr:nth-child(even) { background: #fafaf9; }
+    .pdf-content table.frontmatter { border: 1px solid #e7e5e4; }
+    .pdf-content table.frontmatter th { width: 1%; white-space: nowrap; vertical-align: top; border-bottom: 1px solid #e7e5e4; }
+    .pdf-content table.frontmatter td { vertical-align: top; }
+    .pdf-content table.frontmatter tr { background: transparent; }
     .pdf-content del {
       text-decoration: none;
       color: #a8a29e;

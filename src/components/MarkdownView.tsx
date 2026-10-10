@@ -16,9 +16,47 @@ import {
 } from "@/components/ui/context-menu"
 import { useShiki } from "@/hooks/useShiki"
 import { normalizeMarkdown } from "@/lib/normalize-markdown"
+import { splitFrontmatter } from "@/lib/frontmatter"
 
 import { toast } from "sonner"
 import type { Components } from "react-markdown"
+
+function FrontmatterValue({ value }: { value: unknown }) {
+  if (value == null) return null
+  if (Array.isArray(value)) {
+    return (
+      <Box as="ul" className="ml-5 list-disc space-y-0.5">
+        {value.map((item, i) => (
+          <Box as="li" key={i}>
+            <FrontmatterValue value={item} />
+          </Box>
+        ))}
+      </Box>
+    )
+  }
+  if (value instanceof Date) return <>{value.toISOString().slice(0, 10)}</>
+  if (typeof value === "object") return <FrontmatterTable data={value as Record<string, unknown>} />
+  return <>{String(value)}</>
+}
+
+function FrontmatterTable({ data }: { data: Record<string, unknown> }) {
+  return (
+    <Box as="table" className="w-full border-collapse text-sm">
+      <Box as="tbody">
+        {Object.entries(data).map(([key, value]) => (
+          <Box as="tr" key={key} className="border-b border-border last:border-b-0">
+            <Box as="th" className="w-px whitespace-nowrap px-3 py-2 text-left align-top font-semibold text-foreground">
+              {key}
+            </Box>
+            <Box as="td" className="px-3 py-2 align-top text-foreground break-words">
+              <FrontmatterValue value={value} />
+            </Box>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  )
+}
 
 type MarkdownViewProps = {
   content: string
@@ -35,6 +73,7 @@ export function MarkdownView({
   shikiTheme,
   onOpenFile
 }: MarkdownViewProps) {
+  const { frontmatter, body } = splitFrontmatter(content)
   const hasCodeBlocks = useMemo(() => /```[\s\S]*?```/.test(content), [content])
   const { highlight, ready } = useShiki(shikiTheme, hasCodeBlocks)
   const handleCopySelection = () => {
@@ -230,8 +269,18 @@ export function MarkdownView({
           </Text>
         )}
 
+        {frontmatter && (
+          <Box className="my-4 overflow-x-auto rounded-lg border border-border">
+            {frontmatter.data ? (
+              <FrontmatterTable data={frontmatter.data} />
+            ) : (
+              <CodeBlock language="yaml">{frontmatter.raw}</CodeBlock>
+            )}
+          </Box>
+        )}
+
         <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]} components={components}>
-          {normalizeMarkdown(content)}
+          {normalizeMarkdown(body)}
         </ReactMarkdown>
       </ContextMenuTrigger>
 
